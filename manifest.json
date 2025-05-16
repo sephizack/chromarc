@@ -1,0 +1,19 @@
+{
+  "name": "Arc 4 Brave",
+  "description": "Base Level Extension",
+  "version": "0.1",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "arc_logo.png"
+  },
+  "background": {
+    "service_worker": "service_worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "tabs",
+    "alarms",
+    "storage"
+  ]
+}
