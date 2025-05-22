@@ -4,7 +4,6 @@
   "version": "0.1",
   "manifest_version": 3,
   "action": {
-    "default_popup": "popup.html",
     "default_icon": "arc_logo.png"
   },
   "background": {
@@ -14,6 +13,10 @@
   "permissions": [
     "tabs",
     "alarms",
-    "storage"
-  ]
+    "storage",
+    "sidePanel"
+  ],
+  "side_panel": {
+    "default_path": "sidebar.html"
+  }
 }

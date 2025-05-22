@@ -7,6 +7,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // Keep the message channel open for async response
     }
 });
+// Open the side panel when the extension icon is clicked
+chrome.action.onClicked.addListener((tab) => {
+    if (chrome.sidePanel) {
+        chrome.sidePanel.open({ windowId: tab.windowId });
+    }
+});
+
+// Open the side panel automatically at browser startup for all windows
+chrome.windows.getAll({}, (windows) => {
+    if (chrome.sidePanel) {
+        windows.forEach(win => {
+            chrome.sidePanel.open({ windowId: win.id });
+        });
+    }
+});
+
+chrome.runtime.onStartup.addListener(() => {
+    chrome.windows.getAll({}, (windows) => {
+        if (chrome.sidePanel) {
+            windows.forEach(win => {
+                chrome.sidePanel.open({ windowId: win.id });
+            });
+        }
+    });
+});
+
+// Open the side panel automatically when the extension is installed or reloaded
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.windows.getAll({}, (windows) => {
+        if (chrome.sidePanel) {
+            windows.forEach(win => {
+                chrome.sidePanel.open({ windowId: win.id });
+            });
+        }
+    });
+});
+
 // background.js
 // Tracks tab activity and closes tabs not visited in the last 6 hours
 
