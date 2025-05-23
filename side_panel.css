@@ -23,7 +23,7 @@
     margin: 2px 5px;
     padding: 0;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: default;
     display: block;
     user-select: none;
     transition: background 0.18s;
@@ -74,7 +74,7 @@
     padding: 5px 5px 5px 9px;
     margin: 2px 5px 2px 5px;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: default;
     transition: background 0.18s;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -92,7 +92,7 @@ body {
     width: 320px;
     height: 100vh;
 }
-#sidebar {
+#side_panel {
     padding: 10px 0 10px 0;
     border-left: 1px solid #515155;
 }
@@ -103,7 +103,7 @@ body {
     margin: 10px 16px;
     height: 0;
 }
-#sidebar h2 {
+#side_panel h2 {
     font-size: 1.1em;
     font-weight: 600;
     margin: 0 0 10px 18px;
@@ -122,7 +122,7 @@ body {
     margin: 2px 5px 2px 5px;
     /* background: #292a30; */
     border-radius: 8px;
-    cursor: pointer;
+    cursor: default;
     transition: background 0.18s;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -161,7 +161,7 @@ body {
     font-size: 1.5em;
     background: none;
     border: none;
-    cursor: pointer;
+    cursor: default;
     border-radius: 50%;
     transition: background 0.15s, color 0.15s;
 }

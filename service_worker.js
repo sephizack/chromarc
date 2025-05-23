@@ -1,4 +1,4 @@
-// Listen for toggleSidePanel message from sidebar.js
+// Listen for toggleSidePanel message from side_panel.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'toggleSidePanel') {
         chrome.windows.getCurrent({}, (win) => {

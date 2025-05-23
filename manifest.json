@@ -4,7 +4,7 @@
   "version": "0.1",
   "manifest_version": 3,
   "action": {
-    "default_icon": "arc_logo.png"
+    "default_icon": "logo.png"
   },
   "background": {
     "service_worker": "service_worker.js",
@@ -18,6 +18,6 @@
     "bookmarks"
   ],
   "side_panel": {
-    "default_path": "sidebar.html"
+    "default_path": "side_panel.html"
   }
 }
