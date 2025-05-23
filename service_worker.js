@@ -1,3 +1,19 @@
+// Listen for toggleSidePanel message from sidebar.js
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'toggleSidePanel') {
+        chrome.windows.getCurrent({}, (win) => {
+            if (chrome.sidePanel) {
+                chrome.sidePanel.getPanelState({ windowId: win.id }, (state) => {
+                    if (state && state.opened) {
+                        chrome.sidePanel.close({ windowId: win.id });
+                    } else {
+                        chrome.sidePanel.open({ windowId: win.id });
+                    }
+                });
+            }
+        });
+    }
+});
 import { DEFAULT_TAB_TIMEOUT } from './common.js';
 
 // Listen for messages from popup.js to provide last visited time for a tab
