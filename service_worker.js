@@ -1,4 +1,6 @@
-// Listen for toggleSidePanel message from side_panel.js
+
+import { DEFAULT_TAB_TIMEOUT } from './common.js';
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'toggleSidePanel') {
         chrome.windows.getCurrent({}, (win) => {
@@ -14,23 +16,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     }
 });
-import { DEFAULT_TAB_TIMEOUT } from './common.js';
 
-// Listen for messages from popup.js to provide last visited time for a tab
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'getLastVisited' && message.tabId !== undefined) {
         sendResponse({ lastVisited: tabLastVisited[message.tabId] });
-        return true; // Keep the message channel open for async response
+        return true;
     }
 });
-// Open the side panel when the extension icon is clicked
+
 chrome.action.onClicked.addListener((tab) => {
     if (chrome.sidePanel) {
         chrome.sidePanel.open({ windowId: tab.windowId });
     }
 });
 
-// Open the side panel automatically at browser startup for all windows
 chrome.windows.getAll({}, (windows) => {
     if (chrome.sidePanel) {
         windows.forEach(win => {
@@ -49,7 +48,6 @@ chrome.runtime.onStartup.addListener(() => {
     });
 });
 
-// Open the side panel automatically when the extension is installed or reloaded
 chrome.runtime.onInstalled.addListener(() => {
     chrome.windows.getAll({}, (windows) => {
         if (chrome.sidePanel) {

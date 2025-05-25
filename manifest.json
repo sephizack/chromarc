@@ -19,5 +19,14 @@
   ],
   "side_panel": {
     "default_path": "side_panel.html"
+  },
+  "commands": {
+    "Open-side-panel": {
+      "suggested_key": {
+        "default": "Ctrl+S",
+        "mac": "Command+S"
+      },
+      "description": "Open side panel"
+    }
   }
 }
