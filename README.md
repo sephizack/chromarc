@@ -6,11 +6,11 @@ Arc4Brave is a Chrome extension designed to bring popular features from the [Arc
 
 - [ ] Tab management inspired by Arc Browser
   - [ ] Bookmarks
-    - [ ] Folders
+    - [X] Folders
     - [ ] Opening from bookmark doesn't open a new tab
   - [ ] Tabs
     - [X] Show & switch tabs
-    - [ ] Move tabs
+    - [X] Move tabs
     - [ ] Move tabs to bookmarks
 - [X] Sidebar for quick access to bookmarks and tools
 - [ ] Split view for multitasking

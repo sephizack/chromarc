@@ -5,7 +5,12 @@ export class Tab {
         this.tab = tab;
     }
 
-    render() {
+    render({
+        onDragStart,
+        onDragOver,
+        onDrop,
+        onDragEnd
+    } = {}) {
         this.faviconRef = crel('img', {
             class: 'tab-favicon',
             src: this.tab.favIconUrl,
@@ -30,9 +35,22 @@ export class Tab {
             {
                 class: 'tab-item' + (this.tab.active ? ' active' : '') + (this.tab.pinned ? ' pinned' : ''),
                 id: 'tab-' + this.tab.id,
+                draggable: true,
                 onclick: (e) => {
                     e.stopPropagation();
                     chrome.tabs.update(this.tab.id, { active: true });
+                },
+                ondragstart: (e) => {
+                    if (onDragStart) onDragStart(e, this.tab.id);
+                },
+                ondragover: (e) => {
+                    if (onDragOver) onDragOver(e, this.tab.id);
+                },
+                ondrop: (e) => {
+                    if (onDrop) onDrop(e, this.tab.id);
+                },
+                ondragend: (e) => {
+                    if (onDragEnd) onDragEnd(e, this.tab.id);
                 }
             },
             this.faviconRef,
