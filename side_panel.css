@@ -7,6 +7,11 @@
     --color-text-secondary: #b0b3b8;
     --color-tab-close-hover-bg: #6e6e71;
     --color-tab-highlight: #fff;
+
+    /* Make text unselectable */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
 }
 
 #bookmark-list {
@@ -160,6 +165,46 @@ body {
 .tab-favicon {
     width: 18px;
     height: 18px;
+    margin-right: 10px;
+    border-radius: 3px;
+    object-fit: contain;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 18px;
+}
+
+/* Make the + in the new tab as big as the favicon and match tab height */
+#new-tab {
+    min-height: 23px;
+}
+#new-tab .tab-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 12px;
+    opacity: 0.8;
+    margin-right: 4px;
+}
+#new-tab .tab-shortcut kbd {
+    border-radius: 5px;
+    padding: 1px;
+    width: 14px;
+    text-align: center;
+    font-family: inherit;
+    font-size: 0.95em;
+    border: 1px solid var(--color-divider);
+    color: inherit;
+    box-shadow: none;
+}
+#new-tab .tab-favicon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 10px;
     border-radius: 3px;
     object-fit: contain;
