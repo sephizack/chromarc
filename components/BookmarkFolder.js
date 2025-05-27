@@ -1,6 +1,6 @@
 'use strict';
 
-import { getFolderIconSVG } from './getFolderIconSVG.js';
+import { getFolderIconSVG } from '../icon_utils.js';
 import { Bookmark } from './Bookmark.js';
 
 export class BookmarkFolder {

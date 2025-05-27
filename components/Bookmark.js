@@ -1,5 +1,7 @@
 'use strict';
 
+import { getFaviconUrl } from '../icon_utils.js';
+
 export class Bookmark {
     constructor(bookmark) {
         this.bookmark = bookmark;
@@ -8,7 +10,7 @@ export class Bookmark {
     render() {
         this.imgRef = crel('img', {
             class: 'tab-favicon',
-            src: 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(this.bookmark.url),
+            src: getFaviconUrl(this.bookmark.url),
             onerror: function() { this.style.display = 'none'; }
         });
         this.titleRef = crel('span', {
@@ -31,7 +33,7 @@ export class Bookmark {
             this.titleRef.title = changeInfo.title || '';
         }
         if (changeInfo.url !== undefined) {
-            this.imgRef.src = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(changeInfo.url);
+            this.imgRef.src = getFaviconUrl(changeInfo.url);
             this.titleRef.title = changeInfo.url || '';
         }
     }

@@ -15,10 +15,20 @@ export class BookmarkList {
             if (!bookmarkTreeNodes || !bookmarkTreeNodes[0] || !bookmarkTreeNodes[0].children) {
                 console.error('No bookmarks found or invalid structure');
                 return;
-            };
+            }
+            // Chrome's bookmarks tree: [0] is root, children: [0]=Bookmarks Bar, [1]=Other Bookmarks, [2]=Mobile Bookmarks
             const nodes = bookmarkTreeNodes[0].children;
-            nodes.forEach(node => {
-                this.addBookmark(node.id, node);
+            // Find the Bookmarks Bar node (usually id '1' or title 'Bookmarks Bar')
+            const bookmarksBar = nodes.find(
+                node => node.id === '1' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar'
+            );
+            if (!bookmarksBar || !bookmarksBar.children) {
+                console.error('Bookmarks Bar not found');
+                return;
+            }
+            // Only render Bookmarks Bar and its subfolders/bookmarks
+            bookmarksBar.children.forEach(child => {
+                this.addBookmark(child.id, child);
             });
         });
     }

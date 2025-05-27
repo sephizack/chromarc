@@ -16,7 +16,10 @@ export class SidePanel {
 
         // Tabs incremental updates
         chrome.tabs.onCreated.addListener(tab => {
-            this.tabList.addTab(tab);
+            // Move the new tab to index 0 in Chrome, then add to UI
+            chrome.tabs.move(tab.id, {index: 0}, () => {
+                this.tabList.addTab(tab);
+            });
         });
         chrome.tabs.onRemoved.addListener(tabId => {
             this.tabList.removeTab(tabId);

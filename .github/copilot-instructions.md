@@ -1,6 +1,12 @@
+
 # Copilot Instructions for Chrome Extension Development
 
 This file provides guidelines and best practices for GitHub Copilot when assisting with code generation and suggestions for this Chrome extension project.
+
+## Project Description
+This project is a Chrome extension designed to enhance the browser experience by providing features such as bookmark management, tab organization, and a customizable side panel.
+The codebase follows best practices for Chrome extension development, focusing on security, maintainability, and usability.
+
 
 ## General Coding Best Practices
 - **Use clear, descriptive variable and function names.**

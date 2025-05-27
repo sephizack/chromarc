@@ -1,4 +1,6 @@
+
 'use strict';
+import { getFaviconUrl } from '../icon_utils.js';
 
 export class Tab {
     constructor(tab) {
@@ -11,9 +13,14 @@ export class Tab {
         onDrop,
         onDragEnd
     } = {}) {
+        // Use spinner as favicon if tab is loading
+        const isLoading = this.tab.status === 'loading';
+        let faviconUrl = isLoading
+            ? 'assets/spinner.svg'
+            : (this.tab.favIconUrl || getFaviconUrl(this.tab.url));
         this.faviconRef = crel('img', {
             class: 'tab-favicon',
-            src: this.tab.favIconUrl,
+            src: faviconUrl,
             onerror: function () { this.style.display = 'none'; }
         });
 
@@ -62,11 +69,21 @@ export class Tab {
     }
 
     update(changeInfo, tab) {
+        // Update title if changed
         if (changeInfo.title !== undefined) {
             this.titleRef.textContent = tab.title || tab.url;
             this.titleRef.title = tab.url;
         }
-        if (changeInfo.favIconUrl !== undefined) {
+        // Show spinner if loading, otherwise show favicon
+        if (changeInfo.status !== undefined) {
+            if (tab.status === 'loading') {
+                this.faviconRef.src = 'assets/spinner.svg';
+                this.faviconRef.style.display = 'inline';
+            } else {
+                this.faviconRef.src = tab.favIconUrl || getFaviconUrl(tab.url);
+                this.faviconRef.style.display = 'inline';
+            }
+        } else if (changeInfo.favIconUrl !== undefined) {
             this.faviconRef.src = tab.favIconUrl;
             this.faviconRef.style.display = this.faviconRef.src ? 'inline' : 'none';
         }

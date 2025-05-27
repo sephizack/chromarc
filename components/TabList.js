@@ -12,9 +12,12 @@ export class TabList {
         this.ref = document.getElementById('tab-list');
         this.draggedTabId = null;
         this.placeholder = null;
+        this.ref.innerHTML = '';
+
         chrome.tabs.query({}, (tabs) => {
-            this.ref.innerHTML = '';
             this.tabs.clear();
+            // Sort tabs in descending order by id (proxy for creation time)
+            tabs.sort((a, b) => b.id - a.id);
             tabs.forEach(tab => {
                 this.addTab(tab);
                 if (tab.active) {
@@ -25,6 +28,7 @@ export class TabList {
     }
 
     addTab(tab) {
+        // Create Tab component and DOM element
         const tabComponent = new Tab(tab);
         const tabElement = tabComponent.render({
             onDragStart: this.handleDragStart.bind(this),
@@ -32,8 +36,14 @@ export class TabList {
             onDrop: this.handleDrop.bind(this),
             onDragEnd: this.handleDragEnd.bind(this)
         });
-        this.ref.appendChild(tabElement);
-        this.tabs.set(tab.id, tabComponent);
+        // Insert at the top of the list (newest first)
+        if (this.ref.firstChild) {
+            this.ref.insertBefore(tabElement, this.ref.firstChild);
+        } else {
+            this.ref.appendChild(tabElement);
+        }
+        // Insert at the beginning of the Map (preserve order)
+        this.tabs = new Map([[tab.id, tabComponent], ...this.tabs]);
     }
 
     handleDragStart(e, tabId) {

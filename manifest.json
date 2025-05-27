@@ -15,7 +15,8 @@
     "alarms",
     "storage",
     "sidePanel",
-    "bookmarks"
+    "bookmarks",
+    "favicon"
   ],
   "side_panel": {
     "default_path": "side_panel.html"

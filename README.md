@@ -40,9 +40,10 @@ Important emojis:
 | Emoji  | Description                                    |
 | ------ | ---------------------------------------------- |
 |   ✨   | New features                                   |
-|   🐛   | Bug fix                                         |
+|   🐛   | Bug fix                                        |
 |   ⚡️   | Improve perf                                   |
 |   ♻️   | Refactor code                                  |
+|   💄   | UI cosmetics                                   |
 |   📝   | Documentation                                  |
 |   🚀   | Deployment stuff                               |
 |   🚧   | Work in progress                               |
