@@ -16,9 +16,12 @@ export class SidePanel {
 
         // Tabs incremental updates
         chrome.tabs.onCreated.addListener(tab => {
-            // Move the new tab to index 0 in Chrome, then add to UI
-            chrome.tabs.move(tab.id, {index: 0}, () => {
-                this.tabList.addTab(tab);
+            // Add to the tab list then move to index 0
+            this.tabList.addTab(tab);
+            chrome.tabs.move(tab.id, { index: 0 }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error('Failed to move tab:', chrome.runtime.lastError.message);
+                }
             });
         });
         chrome.tabs.onRemoved.addListener(tabId => {

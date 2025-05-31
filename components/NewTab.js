@@ -2,7 +2,13 @@
 'use strict';
 
 export class NewTab {
-    constructor() {
+    constructor(tabList) {
+        this.tabList = tabList;
+        this.pendingNewTabId = null;
+    }
+
+    static isNewTab(tab) {
+        return tab.url === 'chrome://newtab/' || tab.pendingUrl === 'chrome://newtab/';
     }
 
     render() {
@@ -39,8 +45,29 @@ export class NewTab {
         return this.ref;
     }
 
+    setPendingNewTab(tab) {
+        if (tab.active) {
+            console.log('Detected new tab:', tab.id);
+            this.setActive(true);
+            this.pendingNewTabId = tab.id;
+            this.tabList.tabs.set(tab.id, this);
+        } else {
+            console.log('Detected new tab but not active, ignoring:', tab.id);
+        }
+    }
+
     update(changeInfo, tab) {
-        console.warn('NewTab does not support updates');
+        // console.warn('NewTab does not support updates');
+        if (tab.id === this.pendingNewTabId) {
+            if (NewTab.isNewTab(tab)) {
+                // Nothing to do, still pending
+                return;
+            }
+            console.info('Extracting pending new tab:', tab);
+            this.pendingNewTabId = null;
+            this.tabList.addTab(tab);
+            this.setActive(false);
+        }
     }
 
     setActive(isActive) {
@@ -48,6 +75,15 @@ export class NewTab {
             this.ref.classList.add('active');
         } else {
             this.ref.classList.remove('active');
+            // If there was a pending new tab, close it
+            if (this.pendingNewTabId) {
+                console.log('Deactivated tab was pending new tab, closing it now.');
+                chrome.tabs.remove(this.pendingNewTabId, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Failed to close pending new tab:', chrome.runtime.lastError.message);
+                    }
+                });
+            }
         }
     }
 }

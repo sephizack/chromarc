@@ -7,7 +7,6 @@ export class TabList {
     constructor() {
         this.ref = null;
         this.tabs = new Map();
-        this.pendingNewTabId = null;
         this.activeTabId = null;
         this.draggedTabId = null;
         this.placeholder = null;
@@ -19,7 +18,7 @@ export class TabList {
         this.ref.innerHTML = '';
 
         // New Tab Button
-        this.newTab = new NewTab();
+        this.newTab = new NewTab(this);
         this.ref.appendChild(this.newTab.render());
         this.tabs.set('new-tab', this.newTab);
 
@@ -32,24 +31,12 @@ export class TabList {
         });
     }
 
-    isNewTab(tab) {
-        return tab.url === 'chrome://newtab/' || tab.pendingUrl === 'chrome://newtab/'
-    }
-
 
     addTab(tab) {
         console.log('Adding tab:', tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
-        if (this.isNewTab(tab)) {
-            if (tab.active) {
-                console.log('Detected new tab:', tab.id);
-                if (this.newTab) {
-                    this.newTab.setActive(true);
-                }
-                this.pendingNewTabId = tab.id;
-            } else {
-                console.log('Detected new tab but not active, ignoring:', tab.id);
-            }
+        if (NewTab.isNewTab(tab)) {
+            this.newTab.setPendingNewTab(tab);
             return;
         }
         // Create Tab component and DOM element
@@ -155,23 +142,15 @@ export class TabList {
 
     updateTab(tabId, changeInfo, tab) {
         console.trace(`updateTab`, tabId, changeInfo, tab);
-        if (tabId === this.pendingNewTabId) {
-            if (this.isNewTab(tab)) {
-                // Nothing to do, still pending
-                return;
-            }
-            console.info('Extracting pending new tab:', tab);
-            this.pendingNewTabId = null;
-            this.addTab(tab);
-        } else {
-            console.log('Updating tab:', tabId, changeInfo);
-            this.tabs.get(tabId).update(changeInfo, tab);
-        }
+        this.tabs.get(tabId).update(changeInfo, tab);
     }
 
     removeTab(tabId) {
         console.trace(`removeTab(${tabId})`);
-        this.tabs.get(tabId).ref.remove();
+        const tabComponent = this.tabs.get(tabId);
+        if (tabComponent !== this.newTab) {
+            tabComponent.ref.remove();
+        }
         this.tabs.delete(tabId);
     }
 
@@ -180,24 +159,9 @@ export class TabList {
         if (this.activeTabId !== null) {
             console.log('Deactivating previous active tab:', this.activeTabId);
             this.tabs.get(this.activeTabId)?.setActive(false);
-            // If the active tab was the pending new tab, close it
-            if (this.activeTabId === 'new-tab' && this.pendingNewTabId) {
-                console.log('Deactivated tab was pending new tab, closing it now.');
-                chrome.tabs.remove(this.pendingNewTabId, () => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Failed to close pending new tab:', chrome.runtime.lastError.message);
-                    }
-                });
-            }
         }
-        if (tabId === this.pendingNewTabId || !this.tabs.has(tabId)) {
-            console.log('Setting active tab: new-tab');
-            this.activeTabId = 'new-tab';
-            this.newTab.setActive(true);
-        } else {
-            console.log('Setting active tab:', tabId);
-            this.activeTabId = tabId;
-            this.tabs.get(tabId).setActive(true);
-        }
+        console.log('Setting active tab:', tabId);
+        this.activeTabId = tabId;
+        this.tabs.get(tabId).setActive(true);
     }
 }
