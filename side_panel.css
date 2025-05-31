@@ -1,3 +1,49 @@
+.bookmark-text-container.hint-visible ~ .bookmark-left,
+.bookmark-left.hint-bg {
+    background: rgba(255,255,255,0.07);
+    transition: background 0.15s;
+}
+/* Container for favicon and url diff indicator */
+.bookmark-left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding-left: 9px;
+    height: 100%;
+}
+/* Container for title and hint */
+.bookmark-text-container {
+    padding: 5px 5px 5px 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Subtext hint for returning to the bookmarked URL */
+.bookmark-url-hint {
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+    opacity: 0.85;
+    margin-top: 0px;
+    margin-left: 5px;
+    font-style: italic;
+    line-height: 1.6;
+    pointer-events: none;
+    white-space: nowrap;
+    height: 0;
+    overflow: visible;
+    transition: opacity 0.15s;
+    visibility: hidden;
+}
+
+.bookmark-text-container.hint-visible .bookmark-url-hint {
+    height: auto;
+    opacity: 1;
+    visibility: visible;
+}
 :root {
     --color-bg: #3b3b3f;
     --color-bg-hover: #46464a;
@@ -14,25 +60,57 @@
     user-select: none; /* Standard syntax */
 }
 
+.url-diff-indicator {
+    display: inline-block;
+    width: 5px;
+    height: 16px;
+    vertical-align: middle;
+    background: none;
+    position: relative;
+    margin-left: 1px;
+}
+
+.url-diff-indicator::before {
+    content: '/';
+    color: var(--color-text-secondary);
+    font-size: 1.2em;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 1;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.bookmark-left.hint-bg .url-diff-indicator {
+    visibility: hidden;
+}
+
 #bookmark-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
+
 .folder-icon {
     display: flex;
     align-items: center;
     margin-right: 10px;
-    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.18s;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s;
 }
+
 .folder-icon.open {
     transform: scale(1.1) rotate(-8deg);
     opacity: 1;
 }
+
 .folder-icon.close {
     transform: scale(0.95) rotate(8deg);
     opacity: 0.7;
 }
+
 .bookmark-folder {
     font-weight: bold;
     color: var(--color-text-secondary);
@@ -52,6 +130,7 @@
     border-radius: 8px;
     margin-bottom: 2px;
 }
+
 .bookmark-folder-header:hover {
     background: var(--color-bg-hover);
 }
@@ -87,8 +166,9 @@
 .bookmark-item {
     display: flex;
     align-items: center;
-    padding: 5px 5px 5px 9px;
+    /* padding: 5px 5px 5px 9px; */
     margin: 2px 5px 2px 5px;
+    height: 2.8em;
     border-radius: 8px;
     cursor: default;
     transition: background 0.18s;
@@ -97,9 +177,11 @@
     white-space: nowrap;
     position: relative;
 }
+
 .bookmark-item:hover {
     background: var(--color-bg-hover);
 }
+
 body {
     margin: 0;
     background: var(--color-bg);
@@ -107,6 +189,7 @@ body {
     width: 320px;
     height: 100vh;
 }
+
 #side_panel {
     padding: 10px 0 10px 0;
     border-left: 1px solid var(--color-divider);
@@ -118,6 +201,7 @@ body {
     margin: 10px 16px;
     height: 0;
 }
+
 #side_panel h2 {
     font-size: 1.1em;
     font-weight: 600;
@@ -125,11 +209,13 @@ body {
     color: var(--color-text-secondary);
     letter-spacing: 0.5px;
 }
+
 #tab-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
+
 .tab-item {
     display: flex;
     align-items: center;
@@ -143,29 +229,34 @@ body {
     white-space: nowrap;
     position: relative;
 }
+
 .active {
     background: var(--color-bg-active) !important;
     color: var(--color-tab-highlight) !important;
 }
+
 .tab-item.pinned {
     font-style: italic;
     opacity: 0.7;
 }
+
 .tab-placeholder {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     border: 2px dashed #aaa;
-    min-height: 32px;
+    min-height: 2.8em;
     margin: 2px 5px 2px 5px;
     border-radius: 8px;
     list-style: none;
 }
+
 .tab-item:hover {
     background: var(--color-bg-hover);
 }
+
 .tab-favicon {
     width: 18px;
     height: 18px;
-    margin-right: 10px;
+    margin-right: 5px;
     border-radius: 3px;
     object-fit: contain;
     display: inline-flex;
@@ -177,8 +268,9 @@ body {
 
 /* Make the + in the new tab as big as the favicon and match tab height */
 #new-tab {
-    min-height: 23px;
+    min-height: 1.9em;
 }
+
 #new-tab .tab-shortcut {
     display: flex;
     align-items: center;
@@ -187,6 +279,7 @@ body {
     opacity: 0.8;
     margin-right: 4px;
 }
+
 #new-tab .tab-shortcut kbd {
     border-radius: 5px;
     padding: 1px;
@@ -198,6 +291,7 @@ body {
     color: inherit;
     box-shadow: none;
 }
+
 #new-tab .tab-favicon {
     font-size: 18px;
     width: 18px;
@@ -209,13 +303,17 @@ body {
     border-radius: 3px;
     object-fit: contain;
 }
+
 .tab-title {
     flex: 1;
+    margin-left: 5px;
     font-size: 1em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    align-content: center;
 }
+
 .tab-close {
     margin-left: 10px;
     color: var(--color-text);
@@ -226,6 +324,7 @@ body {
     border-radius: 50%;
     transition: background 0.15s, color 0.15s;
 }
+
 .tab-close:hover {
     background: var(--color-tab-close-hover-bg);
     color: var(--color-tab-highlight);

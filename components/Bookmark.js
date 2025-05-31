@@ -14,15 +14,28 @@ export class Bookmark {
             src: getFaviconUrl(this.bookmark.url),
             onerror: function() { this.style.display = 'none'; }
         });
+        // Indicator for URL difference
+        this.urlDiffIndicator = crel('span', {
+            class: 'url-diff-indicator',
+            style: 'display: none;',
+            title: 'Tab URL is different from bookmark URL'
+        });
         this.titleRef = crel('span', {
             class: 'tab-title',
             title: this.bookmark.url
         }, this.bookmark.title || this.bookmark.url);
+        // Subtext hint, always rendered for layout stability
+        this.urlHintRef = crel('span', {
+            class: 'bookmark-url-hint'
+        }, 'Back to the bookmarked URL');
+        this.textContainer = crel('div', { class: 'bookmark-text-container' }, this.titleRef, this.urlHintRef);
+        // Left part container (favicon + indicator)
+        this.leftContainer = crel('div', { class: 'bookmark-left' }, this.imgRef, this.urlDiffIndicator);
         this.ref = crel(
             'li',
             { class: 'bookmark-item', id: 'bookmark-' + this.bookmark.id },
-            this.imgRef,
-            this.titleRef
+            this.leftContainer,
+            this.textContainer
         );
         this.ref.onclick = () => {
             if (this.openedTab) {
@@ -33,6 +46,19 @@ export class Bookmark {
                 chrome.tabs.create({ url: this.bookmark.url });
             }
         };
+        // Show/hide hint on left part hover, using class for animation/position
+        const showHint = () => {
+            if (this.urlDiffIndicator.style.display !== 'none') {
+                this.textContainer.classList.add('hint-visible');
+                this.leftContainer.classList.add('hint-bg');
+            }
+        };
+        const hideHint = () => {
+            this.textContainer.classList.remove('hint-visible');
+            this.leftContainer.classList.remove('hint-bg');
+        };
+        this.leftContainer.addEventListener('mouseenter', showHint);
+        this.leftContainer.addEventListener('mouseleave', hideHint);
         return this.ref;
     }
 
@@ -41,15 +67,18 @@ export class Bookmark {
         if (changeInfo.title !== undefined) {
             this.titleRef.textContent = changeInfo.title || '';
             this.titleRef.title = changeInfo.title || '';
-            const tabUrl = this.openedTab.url || this.openedTab.pendingUrl;
-            if (tabUrl !== this.bookmark.url) {
-                this.titleRef.textContent = "** " + this.titleRef.textContent;
-                this.titleRef.title = "** " + this.titleRef.title;
-            }
         }
         if (changeInfo.url !== undefined) {
             this.imgRef.src = getFaviconUrl(changeInfo.url);
             this.titleRef.title = changeInfo.url || '';
+        }
+        // Stylish indicator if tab URL differs from bookmark URL
+        const tabUrl = this.openedTab.url || this.openedTab.pendingUrl;
+        if (tabUrl !== this.bookmark.url) {
+            this.urlDiffIndicator.style.display = '';
+        } else {
+            this.urlDiffIndicator.style.display = 'none';
+            this.textContainer.classList.remove('hint-visible');
         }
     }
 
