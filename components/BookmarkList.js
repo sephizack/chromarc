@@ -7,6 +7,7 @@ export class BookmarkList {
     constructor() {
         this.bookmarks = new Map();
         this.folders = new Map();
+        this.urlIndex = new Map();
     }
 
     render() {
@@ -37,6 +38,7 @@ export class BookmarkList {
         if (bookmark.url) {
             const bookmarkComponent = new Bookmark(bookmark);
             this.bookmarks.set(id, bookmarkComponent);
+            this.urlIndex.set(bookmark.url, bookmarkComponent);
             this.ref.appendChild(bookmarkComponent.render());
         } else {
             const folderComponent = new BookmarkFolder(bookmark);
@@ -45,10 +47,10 @@ export class BookmarkList {
         }
     }
 
-    updateBookmark(id, changeInfo) {
+    changeBookmark(id, changeInfo) {
         const bookmarkComponent = this.bookmarks.get(id);
         if (bookmarkComponent) {
-            bookmarkComponent.update(changeInfo);
+            bookmarkComponent.changeBookmark(changeInfo);
         }
         // For folders, just update the title
         const folderComponent = this.folders.get(id);

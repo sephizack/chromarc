@@ -4,16 +4,14 @@ import { NewTab } from './NewTab.js';
 import { Tab } from './Tab.js';
 
 export class TabList {
-    constructor() {
+    constructor(tabs) {
         this.ref = null;
-        this.tabs = new Map();
-        this.activeTabId = null;
+        this.tabs = tabs;
         this.draggedTabId = null;
         this.placeholder = null;
     }
 
     render() {
-        this.tabs.clear();
         this.ref = document.getElementById('tab-list');
         this.ref.innerHTML = '';
 
@@ -31,9 +29,8 @@ export class TabList {
         });
     }
 
-
     addTab(tab) {
-        console.log('Adding tab:', tab);
+        console.trace(`addTab`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
         if (NewTab.isNewTab(tab)) {
             this.newTab.setPendingNewTab(tab);
@@ -54,10 +51,6 @@ export class TabList {
             this.ref.appendChild(tabElement);
         }
         this.tabs.set(tab.id, tabComponent);
-        // Set active tab if necessary
-        if (tab.active) {
-            this.setActiveTab(tab.id);
-        }
     }
 
     handleDragStart(e, tabId) {
@@ -142,26 +135,15 @@ export class TabList {
 
     updateTab(tabId, changeInfo, tab) {
         console.trace(`updateTab`, tabId, changeInfo, tab);
-        this.tabs.get(tabId).update(changeInfo, tab);
+        this.tabs.get(tabId).updateTab(changeInfo, tab);
     }
 
     removeTab(tabId) {
-        console.trace(`removeTab(${tabId})`);
+        console.trace(`removeTab`, tabId);
         const tabComponent = this.tabs.get(tabId);
         if (tabComponent !== this.newTab) {
             tabComponent.ref.remove();
         }
         this.tabs.delete(tabId);
-    }
-
-    setActiveTab(tabId) {
-        console.trace(`setActiveTab(${tabId})`);
-        if (this.activeTabId !== null) {
-            console.log('Deactivating previous active tab:', this.activeTabId);
-            this.tabs.get(this.activeTabId)?.setActive(false);
-        }
-        console.log('Setting active tab:', tabId);
-        this.activeTabId = tabId;
-        this.tabs.get(tabId).setActive(true);
     }
 }

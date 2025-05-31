@@ -56,7 +56,7 @@ export class NewTab {
         }
     }
 
-    update(changeInfo, tab) {
+    updateTab(changeInfo, tab) {
         // console.warn('NewTab does not support updates');
         if (tab.id === this.pendingNewTabId) {
             if (NewTab.isNewTab(tab)) {

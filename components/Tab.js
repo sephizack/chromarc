@@ -68,7 +68,7 @@ export class Tab {
         return this.ref;
     }
 
-    update(changeInfo, tab) {
+    updateTab(changeInfo, tab) {
         // Update title if changed
         if (changeInfo.title !== undefined) {
             this.titleRef.textContent = tab.title || tab.url;
