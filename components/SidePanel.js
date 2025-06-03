@@ -87,7 +87,7 @@ export class SidePanel {
     }
 
     onBookmarkCreated(id, bookmark) {
-        this.bookmarkList.addBookmark(id, bookmark);
+        this.bookmarkList.addBookmark(bookmark);
     }
 
     onBookmarkRemoved(id, removeInfo) {

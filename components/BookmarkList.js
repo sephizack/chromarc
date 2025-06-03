@@ -29,20 +29,20 @@ export class BookmarkList {
             }
             // Only render Bookmarks Bar and its subfolders/bookmarks
             bookmarksBar.children.forEach(child => {
-                this.addBookmark(child.id, child);
+                this.addBookmark(child);
             });
         });
     }
 
-    addBookmark(id, bookmark) {
+    addBookmark(bookmark) {
         if (bookmark.url) {
             const bookmarkComponent = new Bookmark(bookmark);
-            this.bookmarks.set(id, bookmarkComponent);
+            this.bookmarks.set(bookmark.id, bookmarkComponent);
             this.urlIndex.set(bookmark.url, bookmarkComponent);
             this.ref.appendChild(bookmarkComponent.render());
         } else {
-            const folderComponent = new BookmarkFolder(bookmark);
-            this.folders.set(id, folderComponent);
+            const folderComponent = new BookmarkFolder(this, bookmark);
+            this.folders.set(bookmark.id, folderComponent);
             this.ref.appendChild(folderComponent.render());
         }
     }

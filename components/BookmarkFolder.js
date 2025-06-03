@@ -4,7 +4,8 @@ import { getFolderIconSVG } from '../icon_utils.js';
 import { Bookmark } from './Bookmark.js';
 
 export class BookmarkFolder {
-    constructor(folder) {
+    constructor(bookmarkList, folder) {
+        this.bookmarkList = bookmarkList;
         this.folder = folder;
         this.isOpen = false;
     }
@@ -25,11 +26,7 @@ export class BookmarkFolder {
         this.sublistRef = crel('ul', { class: 'bookmark-folder-children', style: 'display: none;' });
         if (this.folder.children) {
             this.folder.children.forEach(child => {
-                if (child.url) {
-                    this.sublistRef.appendChild(new Bookmark(child).render());
-                } else {
-                    this.sublistRef.appendChild(new BookmarkFolder(child).render());
-                }
+                this.addBookmark(child);
             });
         }
         this.ref = crel(
@@ -43,6 +40,19 @@ export class BookmarkFolder {
             this.setIsOpen(!this.isOpen);
         };
         return this.ref;
+    }
+
+    addBookmark(bookmark) {
+        if (bookmark.url) {
+            const bookmarkComponent = new Bookmark(bookmark);
+            this.bookmarkList.bookmarks.set(bookmark.id, bookmarkComponent);
+            this.bookmarkList.urlIndex.set(bookmark.url, bookmarkComponent);
+            this.sublistRef.appendChild(bookmarkComponent.render());
+        } else {
+            const folderComponent = new BookmarkFolder(this.bookmarkList, bookmark);
+            this.bookmarkList.folders.set(bookmark.id, folderComponent);
+            this.sublistRef.appendChild(folderComponent.render());
+        }
     }
 
     setIsOpen(isOpen) {

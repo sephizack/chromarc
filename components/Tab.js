@@ -26,7 +26,6 @@ export class Tab {
 
         this.titleRef = crel('span', {
             class: 'tab-title',
-            title: this.tab.url
         }, this.tab.title || this.tab.url);
 
         this.closeButtonRef = crel('button', {
@@ -43,6 +42,7 @@ export class Tab {
                 class: 'tab-item' + (this.tab.active ? ' active' : '') + (this.tab.pinned ? ' pinned' : ''),
                 id: 'tab-' + this.tab.id,
                 draggable: true,
+                title: this.tab.title || '',
                 onclick: (e) => {
                     e.stopPropagation();
                     chrome.tabs.update(this.tab.id, { active: true });
