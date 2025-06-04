@@ -1,13 +1,14 @@
-# Arc4Brave
+<p align="center"><img width="100%" alt="Chromarc's banner" src="src/assets/banner.png"></p>
 
-Arc4Brave is a Chrome extension designed to bring popular features from the [Arc Browser](https://arc.net/) into the [Brave browser](https://brave.com/). The goal is to enhance productivity and browsing experience by replicating Arc's unique tools and workflows within Brave.
+
+Chromarc is a browser extension designed to bring popular features from the [Arc Browser](https://arc.net/) into [Google Chrome](https://www.google.com/intl/fr/chrome/) and [Brave browser](https://brave.com/), enhancing productivity and browsing experience by replicating Arc's unique tools and workflows.
 
 ## Features
 
 - [ ] Tab management inspired by Arc Browser
   - [ ] Bookmarks
     - [X] Folders
-    - [ ] Opening from bookmark doesn't open a new tab
+    - [X] Opening from bookmark doesn't open a new tab
   - [ ] Tabs
     - [X] Show & switch tabs
     - [X] Move tabs

@@ -1,10 +1,10 @@
 {
-  "name": "Arc 4 Brave",
+  "name": "ChromArc (Arc for Chrome)",
   "description": "Base Level Extension",
   "version": "0.1",
   "manifest_version": 3,
   "action": {
-    "default_icon": "logo.png"
+    "default_icon": "assets/logo.png"
   },
   "background": {
     "service_worker": "service_worker.js",
@@ -19,13 +19,12 @@
     "favicon"
   ],
   "side_panel": {
-    "default_path": "side_panel.html"
+    "default_path": "side_panel/side_panel.html"
   },
   "commands": {
     "Open-side-panel": {
       "suggested_key": {
-        "default": "Ctrl+S",
-        "mac": "Command+S"
+        "default": "Ctrl+S"
       },
       "description": "Open side panel"
     }
