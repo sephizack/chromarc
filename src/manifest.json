@@ -21,6 +21,10 @@
   "side_panel": {
     "default_path": "side_panel/side_panel.html"
   },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
   "commands": {
     "Open-side-panel": {
       "suggested_key": {
