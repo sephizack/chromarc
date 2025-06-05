@@ -44,6 +44,10 @@ export class SidePanel {
 
     setActiveTab(tabId) {
         console.trace(`setActiveTab`, tabId);
+        if (!this.tabs.has(tabId)) {
+            console.warn('Tab not found in tabs:', tabId);
+            return;
+        }
         if (tabId === this.activeTabId) {
             console.log('Already the active tab, ignoring');
             return;
@@ -68,7 +72,9 @@ export class SidePanel {
             bookmarkComponent.setActive(true);
         } else {
             this.tabList.addTab(tab);
-            if (tab.active) {
+            // If the tab is active and was added (in case of sequential new tab we only had 1),
+            // set it as the active tab
+            if (tab.active && this.tabs.has(tab.id)) {
                 this.setActiveTab(tab.id);
             }
         }

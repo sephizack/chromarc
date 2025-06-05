@@ -49,8 +49,16 @@ export class NewTab {
         if (tab.active) {
             console.log('Detected new tab:', tab.id);
             this.setActive(true);
-            this.pendingNewTabId = tab.id;
-            this.tabList.tabs.set(tab.id, this);
+            if (this.pendingNewTabId) {
+                // We already have a pending new tab, switch to it
+                console.info('We already have a pending new tab, switch to it:', this.pendingNewTabId);
+                chrome.tabs.update(this.pendingNewTabId, { active: true });
+                this._closeTab(tab.id);
+            } else {
+                // Set this tab as the pending new tab
+                this.pendingNewTabId = tab.id;
+                this.tabList.tabs.set(tab.id, this);
+            }
         } else {
             console.log('Detected new tab but not active, ignoring:', tab.id);
         }
@@ -78,12 +86,27 @@ export class NewTab {
             // If there was a pending new tab, close it
             if (this.pendingNewTabId) {
                 console.log('Deactivated tab was pending new tab, closing it now.');
-                chrome.tabs.remove(this.pendingNewTabId, () => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Failed to close pending new tab:', chrome.runtime.lastError.message);
-                    }
-                });
+                this._closeTab(this.pendingNewTabId);
+                this.pendingNewTabId = null;
             }
         }
+    }
+
+    _closeTab(id) {
+        console.trace(`_closeTab(${id})`);
+        chrome.tabs.remove(id, () => {
+            console.trace(`chrome.tabs.remove(${id})`);
+            if (chrome.runtime.lastError) {
+                // See https://issues.chromium.org/issues/40769041
+                if (chrome.runtime.lastError.message === "Tabs cannot be edited right now (user may be dragging a tab).") {
+                    console.warn('Pending new tab is being dragged, will close it after a short delay.');
+                    setTimeout(() => {
+                        this._closeTab(id);
+                    }, 100);
+                } else {
+                    console.error('Failed to close pending new tab:', chrome.runtime.lastError.message);
+                }
+            }
+        });
     }
 }

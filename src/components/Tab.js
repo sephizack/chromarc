@@ -16,7 +16,7 @@ export class Tab {
         // Use spinner as favicon if tab is loading
         const isLoading = this.tab.status === 'loading';
         let faviconUrl = isLoading
-            ? 'assets/spinner.svg'
+            ? '../assets/spinner.svg'
             : (this.tab.favIconUrl || getFaviconUrl(this.tab.url));
         this.faviconRef = crel('img', {
             class: 'tab-favicon',
@@ -77,7 +77,7 @@ export class Tab {
         // Show spinner if loading, otherwise show favicon
         if (changeInfo.status !== undefined) {
             if (tab.status === 'loading') {
-                this.faviconRef.src = 'assets/spinner.svg';
+                this.faviconRef.src = '../assets/spinner.svg';
                 this.faviconRef.style.display = 'inline';
             } else {
                 this.faviconRef.src = tab.favIconUrl || getFaviconUrl(tab.url);
