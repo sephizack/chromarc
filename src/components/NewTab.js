@@ -78,6 +78,10 @@ export class NewTab {
         }
     }
 
+    removeTab() {
+        // Nothing to do, we don't remove the New Tab component
+    }
+
     setActive(isActive) {
         if (isActive) {
             this.ref.classList.add('active');

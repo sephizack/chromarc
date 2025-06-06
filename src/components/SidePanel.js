@@ -67,7 +67,7 @@ export class SidePanel {
         if (this.bookmarkList.urlIndex.has(tabUrl)) {
             console.info('Tab with URL already exists in bookmarks:', tabUrl);
             const bookmarkComponent = this.bookmarkList.urlIndex.get(tabUrl);
-            bookmarkComponent.setOpenedTab(tab);
+            bookmarkComponent.setTab(tab);
             this.tabs.set(tab.id, bookmarkComponent);
             bookmarkComponent.setActive(true);
         } else {

@@ -140,10 +140,7 @@ export class TabList {
 
     removeTab(tabId) {
         console.trace(`removeTab`, tabId);
-        const tabComponent = this.tabs.get(tabId);
-        if (tabComponent !== this.newTab) {
-            tabComponent?.ref?.remove();
-        }
+        this.tabs.get(tabId).removeTab();
         this.tabs.delete(tabId);
     }
 }

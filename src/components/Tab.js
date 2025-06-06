@@ -28,13 +28,8 @@ export class Tab {
             class: 'tab-title',
         }, this.tab.title || this.tab.url);
 
-        this.closeButtonRef = crel('button', {
-            class: 'tab-close',
-            onclick: (e) => {
-                e.stopPropagation();
-                chrome.tabs.remove(this.tab.id);
-            }
-        }, '\u00D7');
+        this.closeButtonRef = this.renderCloseButton();
+        this.closeButtonRef.style.display = 'none';
 
         this.ref = crel(
             'li',
@@ -58,6 +53,12 @@ export class Tab {
                 },
                 ondragend: (e) => {
                     if (onDragEnd) onDragEnd(e, this.tab.id);
+                },
+                onmouseenter: () => {
+                    this.closeButtonRef.style.display = '';
+                },
+                onmouseleave: () => {
+                    this.closeButtonRef.style.display = 'none';
                 }
             },
             this.faviconRef,
@@ -68,28 +69,44 @@ export class Tab {
         return this.ref;
     }
 
-    updateTab(changeInfo, tab) {
+    renderCloseButton() {
+        return crel('button', {
+            class: 'tab-close',
+            onclick: (e) => {
+                e.stopPropagation();
+                chrome.tabs.remove(this.tab.id);
+            }
+        }, '\u00D7');
+    }
+
+
+    updateTab(changeInfo, _) {
         // Update title if changed
+        Object.assign(this.tab, changeInfo);
         if (changeInfo.title !== undefined) {
-            this.titleRef.textContent = tab.title || tab.url;
-            this.titleRef.title = tab.url;
+            this.titleRef.textContent = this.tab.title || this.tab.url;
+            this.titleRef.title = this.tab.url;
         }
         // Show spinner if loading, otherwise show favicon
         if (changeInfo.status !== undefined) {
-            if (tab.status === 'loading') {
+            if (this.tab.status === 'loading') {
                 this.faviconRef.src = '../assets/spinner.svg';
                 this.faviconRef.style.display = 'inline';
             } else {
-                this.faviconRef.src = tab.favIconUrl || getFaviconUrl(tab.url);
+                this.faviconRef.src = this.tab.favIconUrl || getFaviconUrl(this.tab.url);
                 this.faviconRef.style.display = 'inline';
             }
         } else if (changeInfo.favIconUrl !== undefined) {
-            this.faviconRef.src = tab.favIconUrl;
+            this.faviconRef.src = this.tab.favIconUrl;
             this.faviconRef.style.display = this.faviconRef.src ? 'inline' : 'none';
         }
         if (changeInfo.url !== undefined) {
-            this.titleRef.title = tab.url;
+            this.titleRef.title = this.tab.url;
         }
+    }
+
+    removeTab() {
+        this.ref.remove();
     }
 
     setActive(isActive) {

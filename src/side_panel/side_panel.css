@@ -163,7 +163,8 @@
     display: flex;
     align-items: center;
     margin: 2px 0;
-    height: 2.8em;
+    height: 2.75em;
+    padding-right: 5px;
     border-radius: 8px;
     cursor: default;
     transition: background 0.18s;
@@ -233,8 +234,9 @@ body {
 .tab-item {
     display: flex;
     align-items: center;
-    padding: 5px 5px 5px 9px;
+    padding: 0 5px 0 9px;
     margin: 2px 0;
+    height: 2.75em;
     border-radius: 8px;
     cursor: default;
     transition: background 0.18s;
@@ -329,7 +331,7 @@ body {
 }
 
 .tab-close {
-    margin-left: 10px;
+    margin-left: 3px;
     color: var(--color-text);
     font-size: 1.5em;
     background: none;

@@ -1,21 +1,23 @@
 'use strict';
 
 import { getFaviconUrl } from '../icon_utils.js';
+import { Tab } from './Tab.js';
 
-export class Bookmark {
+export class Bookmark extends Tab {
     constructor(bookmark) {
+        super(null);
         this.bookmark = bookmark;
-        this.openedTab = null;
+        this.isUrlDiff = false;
     }
 
     render() {
-        this.imgRef = crel('img', {
+        this.faviconRef = crel('img', {
             class: 'tab-favicon',
             src: getFaviconUrl(this.bookmark.url),
             onerror: function() { this.style.display = 'none'; }
         });
         // Indicator for URL difference
-        this.urlDiffIndicator = crel('span', {
+        this.urlDiffIndicatorRef = crel('span', {
             class: 'url-diff-indicator',
             style: 'display: none;',
             title: 'Tab URL is different from bookmark URL'
@@ -28,19 +30,33 @@ export class Bookmark {
         this.urlHintRef = crel('span', {
             class: 'bookmark-url-hint'
         }, 'Back to the bookmarked URL');
-        this.textContainer = crel('div', { class: 'bookmark-text-container' }, this.titleRef, this.urlHintRef);
+        this.textContainerRef = crel('div', { class: 'bookmark-text-container' }, this.titleRef, this.urlHintRef);
         // Left part container (favicon + indicator)
-        this.leftContainer = crel('div', { class: 'bookmark-left' }, this.imgRef, this.urlDiffIndicator);
+        this.leftContainerRef = crel('div', { class: 'bookmark-left' }, this.faviconRef, this.urlDiffIndicatorRef);
+        this.closeButtonRef = this.renderCloseButton();
+        this.closeButtonRef.style.display = 'none';
         this.ref = crel(
             'li',
-            { class: 'bookmark-item', id: 'bookmark-' + this.bookmark.id },
-            this.leftContainer,
-            this.textContainer
+            { 
+                class: 'bookmark-item', 
+                id: 'bookmark-' + this.bookmark.id,
+                onmouseenter: () => {
+                    if (this.tab) {
+                        this.closeButtonRef.style.display = '';
+                    }
+                },
+                onmouseleave: () => {
+                    this.closeButtonRef.style.display = 'none';
+                }
+            },
+            this.leftContainerRef,
+            this.textContainerRef,
+            this.closeButtonRef
         );
         this.ref.onclick = () => {
-            if (this.openedTab) {
-                console.log('Bookmark already opened in tab:', this.openedTab.id);
-                chrome.tabs.update(this.openedTab.id, { active: true });
+            if (this.tab) {
+                console.log('Bookmark already opened in tab:', this.tab.id);
+                chrome.tabs.update(this.tab.id, { active: true });
             } else {
                 console.log('Opening bookmark in a new tab:', this.bookmark.id);
                 chrome.tabs.create({ url: this.bookmark.url });
@@ -48,38 +64,52 @@ export class Bookmark {
         };
         // Show/hide hint on left part hover, using class for animation/position
         const showHint = () => {
-            if (this.urlDiffIndicator.style.display !== 'none') {
-                this.textContainer.classList.add('hint-visible');
-                this.leftContainer.classList.add('hint-bg');
+            if (this.isUrlDiff) {
+                this.textContainerRef.classList.add('hint-visible');
+                this.leftContainerRef.classList.add('hint-bg');
             }
         };
         const hideHint = () => {
-            this.textContainer.classList.remove('hint-visible');
-            this.leftContainer.classList.remove('hint-bg');
+            this.textContainerRef.classList.remove('hint-visible');
+            this.leftContainerRef.classList.remove('hint-bg');
         };
-        this.leftContainer.addEventListener('mouseenter', showHint);
-        this.leftContainer.addEventListener('mouseleave', hideHint);
+        this.leftContainerRef.addEventListener('mouseenter', showHint);
+        this.leftContainerRef.addEventListener('mouseleave', hideHint);
+        // Add click handler to leftContainerRef for URL diff restore
+        this.leftContainerRef.addEventListener('click', (event) => {
+            if (this.isUrlDiff) {
+                // Update the tab to the original bookmarked URL
+                chrome.tabs.update(this.tab.id, { url: this.bookmark.url }, (tab) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Failed to restore tab URL:', chrome.runtime.lastError.message);
+                    }
+                });
+            }
+        });
         return this.ref;
     }
 
-    updateTab(changeInfo) {
-        Object.assign(this.openedTab, changeInfo);
-        if (changeInfo.title !== undefined) {
-            this.titleRef.textContent = changeInfo.title || '';
-            this.titleRef.title = changeInfo.title || '';
-        }
-        if (changeInfo.url !== undefined) {
-            this.imgRef.src = getFaviconUrl(changeInfo.url);
-            this.titleRef.title = changeInfo.url || '';
-        }
+    updateTab(changeInfo, _) {
+        super.updateTab(changeInfo, _);
         // Stylish indicator if tab URL differs from bookmark URL
-        const tabUrl = this.openedTab.url || this.openedTab.pendingUrl;
-        if (tabUrl !== this.bookmark.url) {
-            this.urlDiffIndicator.style.display = '';
+        const tabUrl = this.tab.url || this.tab.pendingUrl;
+        this.setIsUrlDiff(tabUrl !== this.bookmark.url);
+    }
+
+    setIsUrlDiff(isUrlDiff) {
+        this.isUrlDiff = isUrlDiff;
+        if (isUrlDiff) {
+            this.urlDiffIndicatorRef.style.display = '';
         } else {
-            this.urlDiffIndicator.style.display = 'none';
-            this.textContainer.classList.remove('hint-visible');
+            this.urlDiffIndicatorRef.style.display = 'none';
+            this.textContainerRef.classList.remove('hint-visible');
         }
+    }
+
+    removeTab() {
+        this.setActive(false);
+        this.setIsUrlDiff(false);
+        this.tab = null;
     }
 
     changeBookmark(id, changeInfo) {
@@ -88,8 +118,8 @@ export class Bookmark {
         Object.assign(this.bookmark, changeInfo);
     }
 
-    setOpenedTab(tab) {
-        this.openedTab = tab;
+    setTab(tab) {
+        this.tab = tab;
     }
 
     setActive(isActive) {
