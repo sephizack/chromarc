@@ -2,9 +2,13 @@
 
 import { Bookmark } from './Bookmark.js';
 import { BookmarkFolder } from './BookmarkFolder.js';
+import { NanoReact, h } from '../nanoreact.js';
 
-export class BookmarkList {
-    constructor() {
+
+export class BookmarkList extends NanoReact.Component {
+    constructor({ tabs }) {
+        super();
+        this.tabs = tabs;
         this.bookmarks = new Map();
         this.folders = new Map();
         this.urlIndex = new Map();
@@ -12,7 +16,11 @@ export class BookmarkList {
     }
 
     render() {
-        this.ref = document.getElementById('bookmark-list');
+        return h('ul', { id: 'bookmark-list' }, []);
+    }
+
+    componentDidMount() {
+        // --- Load existing bookmarks
         chrome.bookmarks.getTree((bookmarkTreeNodes) => {
             if (!bookmarkTreeNodes || !bookmarkTreeNodes[0] || !bookmarkTreeNodes[0].children) {
                 console.error('No bookmarks found or invalid structure');
@@ -33,19 +41,35 @@ export class BookmarkList {
                 this.addBookmark(child);
             });
         });
+
+        // Bookmarks incremental updates
+        chrome.bookmarks.onCreated.addListener((id, bookmark) => this.addBookmark(bookmark));
+        chrome.bookmarks.onRemoved.addListener(this.removeBookmark.bind(this));
+        chrome.bookmarks.onChanged.addListener(this.changeBookmark.bind(this));
+        chrome.bookmarks.onMoved.addListener((e) => console.error('chrome.bookmarks.onMoved not implemented yet'));
+    }
+
+    isTabBookmarked(tab) {
+        return this.urlIndex.has(tab.pendingUrl || tab.url);
+    }
+
+    addBookmarkedTab(tab) {
+        const bookmarkComponent = this.urlIndex.get(tab.pendingUrl || tab.url);
+        bookmarkComponent.setTab(tab);
+        this.tabs.set(tab.id, bookmarkComponent);
     }
 
     addBookmark(bookmark) {
         console.trace(`addBookmark`, bookmark);
         if (bookmark.url) {
-            const bookmarkComponent = new Bookmark(bookmark);
+            const bookmarkComponent = h(Bookmark, { bookmark });
             this.bookmarks.set(bookmark.id, bookmarkComponent);
             this.urlIndex.set(bookmark.url, bookmarkComponent);
-            this.ref.appendChild(bookmarkComponent.render());
+            this.ref.appendChild(NanoReact.render(bookmarkComponent));
         } else {
-            const folderComponent = new BookmarkFolder(this, bookmark);
+            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, urlIndex: this.urlIndex });
             this.folders.set(bookmark.id, folderComponent);
-            this.ref.appendChild(folderComponent.render());
+            this.ref.appendChild(NanoReact.render(folderComponent));
         }
     }
 
@@ -65,8 +89,13 @@ export class BookmarkList {
     }
 
     removeBookmark(id) {
-        this.bookmarks.get(id)?.ref.remove();
-        this.bookmarks.delete(id);
+        let bookmark = this.bookmarks.get(id);
+        if (bookmark) {
+            bookmark.removeBookmark();
+            this.bookmarks.delete(id);
+            this.urlIndex.delete(bookmark.bookmark.url);
+        }
+        // TODO: Not sure it's the right way to remove folder...
         this.folders.get(id)?.ref.remove();
         this.folders.delete(id);
     }

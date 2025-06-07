@@ -1,84 +1,101 @@
 
 'use strict';
-import { getFaviconUrl } from '../icon_utils.js';
 
-export class Tab {
-    constructor(tab) {
+import { getFaviconFromCache } from '../icon_utils.js';
+import { NanoReact, h } from '../nanoreact.js';
+
+export class TabFavicon extends NanoReact.Component {
+    constructor({ tab }) {
+        super();
         this.tab = tab;
     }
 
-    render({
-        onDragStart,
-        onDragOver,
-        onDrop,
-        onDragEnd
-    } = {}) {
-        // Use spinner as favicon if tab is loading
-        const isLoading = this.tab.status === 'loading';
-        let faviconUrl = isLoading
+    getFaviconUrl() {
+        console.log('TabFavicon.getFaviconUrl', this.tab);
+        return this.tab?.status === 'loading'
             ? '../assets/spinner.svg'
-            : (this.tab.favIconUrl || getFaviconUrl(this.tab.url));
-        this.faviconRef = crel('img', {
+            : this.tab?.favIconUrl || getFaviconFromCache(this.tab?.url);
+    }
+
+    updateTab(changeInfo) {
+        // Show spinner if loading, otherwise show favicon
+        if (changeInfo.status !== undefined) {
+            this.ref.src = this.getFaviconUrl();
+            this.ref.style.display = 'inline';
+        } else if (changeInfo.favIconUrl !== undefined) {
+            this.ref.src = changeInfo.favIconUrl;
+            this.ref.style.display = this.ref.src ? 'inline' : 'none';
+        }
+    }
+
+    render() {
+        return h('img', {
             class: 'tab-favicon',
-            src: faviconUrl,
+            src: this.getFaviconUrl(),
             onerror: function () { this.style.display = 'none'; }
         });
+    }
+}
 
-        this.titleRef = crel('span', {
-            class: 'tab-title',
-        }, this.tab.title || this.tab.url);
+export function CloseButton({ onClick }) {
+    return h('button', {
+        class: 'tab-close',
+        onClick: onClick
+    }, '\u00D7');
+}
 
-        this.closeButtonRef = this.renderCloseButton();
-        this.closeButtonRef.style.display = 'none';
 
-        this.ref = crel(
-            'li',
+
+export class Tab extends NanoReact.Component {
+    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd }) {
+        super();
+        // --- Props
+        this.tab = tab;
+        this.onDragStart = onDragStart;
+        this.onDragOver = onDragOver;
+        this.onDrop = onDrop;
+        this.onDragEnd = onDragEnd;
+        // --- DOM Elements
+        this.favicon = null;
+        this.title = null;
+        this.closeButton = null;
+    }
+
+    render() {
+        return h('li',
             {
                 class: 'tab-item' + (this.tab.active ? ' active' : '') + (this.tab.pinned ? ' pinned' : ''),
                 id: 'tab-' + this.tab.id,
                 draggable: true,
                 title: this.tab.title || '',
-                onclick: (e) => {
+                onClick: (e) => {
                     e.stopPropagation();
                     chrome.tabs.update(this.tab.id, { active: true });
                 },
-                ondragstart: (e) => {
-                    if (onDragStart) onDragStart(e, this.tab.id);
+                onDragStart: (e) => this.onDragStart(e, this.tab.id),
+                onDragOver: (e) => this.onDragOver(e, this.tab.id),
+                onDrop: (e) => this.onDrop(e, this.tab.id),
+                onDragEnd: (e) => this.onDragEnd(e, this.tab.id),
+                onMouseEnter: () => {
+                    this.closeButton.ref.style.display = '';
                 },
-                ondragover: (e) => {
-                    if (onDragOver) onDragOver(e, this.tab.id);
-                },
-                ondrop: (e) => {
-                    if (onDrop) onDrop(e, this.tab.id);
-                },
-                ondragend: (e) => {
-                    if (onDragEnd) onDragEnd(e, this.tab.id);
-                },
-                onmouseenter: () => {
-                    this.closeButtonRef.style.display = '';
-                    // this.setContextMenu(true);
-                },
-                onmouseleave: () => {
-                    this.closeButtonRef.style.display = 'none';
-                    // this.setContextMenu(false);
+                onMouseLeave: () => {
+                    this.closeButton.ref.style.display = 'none';
                 }
             },
-            this.faviconRef,
-            this.titleRef,
-            this.closeButtonRef
+            this.favicon = h(TabFavicon, { tab: this.tab }),
+            this.title = h('span', { class: 'tab-title' }, this.tab.title || this.tab.url || 'Loading...'),
+            this.closeButton = h(CloseButton, {
+                onClick: (e) => {
+                    e.stopPropagation();
+                    chrome.tabs.remove(this.tab.id);
+                }
+            })
         );
-
-        return this.ref;
     }
 
-    renderCloseButton() {
-        return crel('button', {
-            class: 'tab-close',
-            onclick: (e) => {
-                e.stopPropagation();
-                chrome.tabs.remove(this.tab.id);
-            }
-        }, '\u00D7');
+    componentDidMount() {
+        this.closeButton.ref.style.display = 'none';
     }
 
     getContextMenuItems() {
@@ -98,30 +115,19 @@ export class Tab {
         ]
     }
 
-
     updateTab(changeInfo, _) {
-        // Update title if changed
-        Object.assign(this.tab, changeInfo);
-        if (changeInfo.title !== undefined) {
-            this.titleRef.textContent = this.tab.title || this.tab.url;
-            this.titleRef.title = this.tab.url;
+        if (this.tab) {
+            Object.assign(this.tab, changeInfo);
         }
-        // Show spinner if loading, otherwise show favicon
-        if (changeInfo.status !== undefined) {
-            if (this.tab.status === 'loading') {
-                this.faviconRef.src = '../assets/spinner.svg';
-                this.faviconRef.style.display = 'inline';
-            } else {
-                this.faviconRef.src = this.tab.favIconUrl || getFaviconUrl(this.tab.url);
-                this.faviconRef.style.display = 'inline';
-            }
-        } else if (changeInfo.favIconUrl !== undefined) {
-            this.faviconRef.src = this.tab.favIconUrl;
-            this.faviconRef.style.display = this.faviconRef.src ? 'inline' : 'none';
+        if (changeInfo.title !== undefined) {
+            const title = changeInfo.title || 'Loading...';
+            this.title.ref.textContent = title;
+            this.title.ref.title = title;
         }
         if (changeInfo.url !== undefined) {
-            this.titleRef.title = this.tab.url;
+            this.title.ref.title = this.tab.url;
         }
+        this.favicon.updateTab(changeInfo);
     }
 
     removeTab() {
@@ -136,3 +142,4 @@ export class Tab {
         }
     }
 }
+

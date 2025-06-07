@@ -2,27 +2,26 @@
 
 import { TabList } from './TabList.js';
 import { BookmarkList } from './BookmarkList.js';
+import { NanoReact, h } from "../nanoreact.js";
 
-export class SidePanel {
+
+function ClearTabsButton() {
+    return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
+}
+
+export class SidePanel extends NanoReact.Component {
     constructor() {
+        super();
         this.tabs = new Map();
         this.activeTabId = null;
-
-        this.tabList = new TabList(this.tabs);
-        this.bookmarkList = new BookmarkList(document.getElementById('bookmark-list'));
-        this.menuItems = {}
+        this.menuItems = {};
     }
 
     render() {
-        this.tabs.clear();
-
-        this.tabList.render();
-        this.bookmarkList.render();
-
         // Get active tab
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs.length > 0) {
-                this.setActiveTab(tabs[0].id);
+                this.activeTabId = tabs[0].id;
             } else {
                 console.error('No active tab found in the current window');
             }
@@ -36,12 +35,6 @@ export class SidePanel {
         // Track active tab
         chrome.tabs.onActivated.addListener(this.onTabActivated.bind(this));
 
-        // Bookmarks incremental updates
-        chrome.bookmarks.onCreated.addListener(this.onBookmarkCreated.bind(this));
-        chrome.bookmarks.onRemoved.addListener(this.onBookmarkRemoved.bind(this));
-        chrome.bookmarks.onChanged.addListener(this.onBookmarkChanged.bind(this));
-        chrome.bookmarks.onMoved.addListener(this.onBookmarkMoved.bind(this));
-
         // Context menu handling
         document.addEventListener('contextmenu', this.onContextMenu.bind(this));
         chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -52,6 +45,15 @@ export class SidePanel {
                 console.warn('No callback found for menu item:', info.menuItemId);
             }
         });
+
+        return h('div', { id: 'side_panel' }, [
+            this.bookmarkList = h(BookmarkList, { tabs: this.tabs }),
+            h('div', { class: 'section-divider-container' }, [
+                h('hr', { class: 'section-divider' }, []),
+                h(ClearTabsButton),
+            ]),
+            this.tabList = h(TabList, { tabs: this.tabs }),
+        ]);
     }
 
     setActiveTab(tabId) {
@@ -75,20 +77,16 @@ export class SidePanel {
 
     onTabCreated(tab) {
         console.trace(`onTabCreated`, tab);
-        const tabUrl = tab.pendingUrl || tab.url;
-        if (this.bookmarkList.urlIndex.has(tabUrl)) {
-            console.info('Tab with URL already exists in bookmarks:', tabUrl);
-            const bookmarkComponent = this.bookmarkList.urlIndex.get(tabUrl);
-            bookmarkComponent.setTab(tab);
-            this.tabs.set(tab.id, bookmarkComponent);
-            bookmarkComponent.setActive(true);
+        if (this.bookmarkList.isTabBookmarked(tab)) {
+            console.info('Tab is bookmarked, adding to bookmarks:', tab);
+            this.bookmarkList.addBookmarkedTab(tab);
         } else {
             this.tabList.addTab(tab);
-            // If the tab is active and was added (in case of sequential new tab we only had 1),
-            // set it as the active tab
-            if (tab.active && this.tabs.has(tab.id)) {
-                this.setActiveTab(tab.id);
-            }
+        }
+        // If the tab is active and was added (in case of sequential new tab we only had 1),
+        // set it as the active tab
+        if (tab.active && this.tabs.has(tab.id)) {
+            this.setActiveTab(tab.id);
         }
     }
 
@@ -102,22 +100,6 @@ export class SidePanel {
 
     onTabActivated(activeInfo) {
         this.setActiveTab(activeInfo.tabId);
-    }
-
-    onBookmarkCreated(id, bookmark) {
-        this.bookmarkList.addBookmark(bookmark);
-    }
-
-    onBookmarkRemoved(id, removeInfo) {
-        this.bookmarkList.removeBookmark(id);
-    }
-
-    onBookmarkChanged(id, changeInfo) {
-        this.bookmarkList.changeBookmark(id, changeInfo);
-    }
-
-    onBookmarkMoved(id, moveInfo) {
-        this.bookmarkList.updateBookmark(id, {});
     }
 
     onContextMenu(e) {

@@ -2,61 +2,59 @@
 
 import { getFolderIconSVG } from '../icon_utils.js';
 import { Bookmark } from './Bookmark.js';
+import { NanoReact, h } from '../nanoreact.js';
 
-export class BookmarkFolder {
-    constructor(bookmarkList, folder) {
-        this.bookmarkList = bookmarkList;
+export class BookmarkFolder extends NanoReact.Component {
+    constructor({ folder, bookmarks, urlIndex }) {
+        super();
         this.folder = folder;
+        this.bookmarks = bookmarks;
+        this.urlIndex = urlIndex;
         this.isOpen = false;
     }
 
     render() {
-        this.iconRef = crel('span', { class: 'folder-icon' });
-        this.iconRef.innerHTML = getFolderIconSVG();
-        this.titleRef = crel('span', { class: 'folder-title' }, this.folder.title || 'Folder');
-        this.headerRef = crel(
-            'div',
-            {
-                class: 'bookmark-folder-header',
-                style: 'display: flex; align-items: center;'
-            },
-            this.iconRef,
-            this.titleRef
+        return h('li',
+            { class: 'bookmark-folder', style: 'display: block;', id: 'bookmark-folder-' + this.folder.id },
+            h('div',
+                {
+                    class: 'bookmark-folder-header',
+                    style: 'display: flex; align-items: center;',
+                    onClick: (e) => {
+                        e.stopPropagation();
+                        this.setIsOpen(!this.isOpen);
+                    }
+                },
+                h('span', { class: 'folder-icon', innerHTML: getFolderIconSVG() }),
+                h('span', { class: 'folder-title' }, this.folder.title || 'Folder'),
+            ),
+            this.sublist = h('ul', { class: 'bookmark-folder-children', style: 'display: none;' })
         );
-        this.sublistRef = crel('ul', { class: 'bookmark-folder-children', style: 'display: none;' });
+    }
+
+    componentDidMount() {
         if (this.folder.children) {
             this.folder.children.forEach(child => {
                 this.addBookmark(child);
             });
         }
-        this.ref = crel(
-            'li',
-            { class: 'bookmark-folder', style: 'display: block;', id: 'bookmark-folder-' + this.folder.id },
-            this.headerRef,
-            this.sublistRef
-        );
-        this.headerRef.onclick = (e) => {
-            e.stopPropagation();
-            this.setIsOpen(!this.isOpen);
-        };
-        return this.ref;
     }
 
     addBookmark(bookmark) {
         if (bookmark.url) {
-            const bookmarkComponent = new Bookmark(bookmark);
-            this.bookmarkList.bookmarks.set(bookmark.id, bookmarkComponent);
-            this.bookmarkList.urlIndex.set(bookmark.url, bookmarkComponent);
-            this.sublistRef.appendChild(bookmarkComponent.render());
+            const bookmarkComponent = h(Bookmark, { bookmark });
+            this.bookmarks.set(bookmark.id, bookmarkComponent);
+            this.urlIndex.set(bookmark.url, bookmarkComponent);
+            this.sublist.ref.appendChild(NanoReact.render(bookmarkComponent));
         } else {
-            const folderComponent = new BookmarkFolder(this.bookmarkList, bookmark);
-            this.bookmarkList.folders.set(bookmark.id, folderComponent);
-            this.sublistRef.appendChild(folderComponent.render());
+            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, urlIndex: this.urlIndex });
+            this.folders.set(bookmark.id, folderComponent);
+            this.sublist.ref.appendChild(NanoReact.render(folderComponent));
         }
     }
 
     setIsOpen(isOpen) {
         this.isOpen = isOpen;
-        this.sublistRef.style.display = isOpen ? 'block' : 'none';
+        this.sublist.ref.style.display = isOpen ? 'block' : 'none';
     }
 }

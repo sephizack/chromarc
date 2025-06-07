@@ -1,92 +1,88 @@
 'use strict';
 
-import { getFaviconUrl } from '../icon_utils.js';
-import { Tab } from './Tab.js';
+import { Tab, TabFavicon, CloseButton } from './Tab.js';
+import { h } from '../nanoreact.js';
+
 
 export class Bookmark extends Tab {
-    constructor(bookmark) {
-        super(null);
+    constructor({bookmark}) {
+        super({});
         this.bookmark = bookmark;
         this.isUrlDiff = false;
     }
 
     render() {
-        this.faviconRef = crel('img', {
-            class: 'tab-favicon',
-            src: getFaviconUrl(this.bookmark.url),
-            onerror: function() { this.style.display = 'none'; }
-        });
-        // Indicator for URL difference
-        this.urlDiffIndicatorRef = crel('span', {
-            class: 'url-diff-indicator',
-            style: 'display: none;',
-            title: 'Tab URL is different from bookmark URL'
-        });
-        this.titleRef = crel('span', {
-            class: 'tab-title',
-            title: this.bookmark.url
-        }, this.bookmark.title || this.bookmark.url);
-        // Subtext hint, always rendered for layout stability
-        this.urlHintRef = crel('span', {
-            class: 'bookmark-url-hint'
-        }, 'Back to the bookmarked URL');
-        this.textContainerRef = crel('div', { class: 'bookmark-text-container' }, this.titleRef, this.urlHintRef);
-        // Left part container (favicon + indicator)
-        this.leftContainerRef = crel('div', { class: 'bookmark-left' }, this.faviconRef, this.urlDiffIndicatorRef);
-        this.closeButtonRef = this.renderCloseButton();
-        this.closeButtonRef.style.display = 'none';
-        this.ref = crel(
+        return h(
             'li',
-            { 
-                class: 'bookmark-item', 
+            {
+                class: 'bookmark-item',
                 id: 'bookmark-' + this.bookmark.id,
-                onmouseenter: () => {
+                onMouseEnter: () => {
                     if (this.tab) {
-                        this.closeButtonRef.style.display = '';
+                        this.closeButton.ref.style.display = '';
                     }
                 },
-                onmouseleave: () => {
-                    this.closeButtonRef.style.display = 'none';
+                onMouseLeave: () => {
+                    this.closeButton.ref.style.display = 'none';
+                },
+                onClick: () => {
+                    if (this.tab) {
+                        console.log('Bookmark already opened in tab:', this.tab.id);
+                        chrome.tabs.update(this.tab.id, { active: true });
+                    } else {
+                        console.log('Opening bookmark in a new tab:', this.bookmark.id);
+                        chrome.tabs.create({ url: this.bookmark.url });
+                    }
                 }
             },
-            this.leftContainerRef,
-            this.textContainerRef,
-            this.closeButtonRef
-        );
-        this.ref.onclick = () => {
-            if (this.tab) {
-                console.log('Bookmark already opened in tab:', this.tab.id);
-                chrome.tabs.update(this.tab.id, { active: true });
-            } else {
-                console.log('Opening bookmark in a new tab:', this.bookmark.id);
-                chrome.tabs.create({ url: this.bookmark.url });
-            }
-        };
-        // Show/hide hint on left part hover, using class for animation/position
-        const showHint = () => {
-            if (this.isUrlDiff) {
-                this.textContainerRef.classList.add('hint-visible');
-                this.leftContainerRef.classList.add('hint-bg');
-            }
-        };
-        const hideHint = () => {
-            this.textContainerRef.classList.remove('hint-visible');
-            this.leftContainerRef.classList.remove('hint-bg');
-        };
-        this.leftContainerRef.addEventListener('mouseenter', showHint);
-        this.leftContainerRef.addEventListener('mouseleave', hideHint);
-        // Add click handler to leftContainerRef for URL diff restore
-        this.leftContainerRef.addEventListener('click', (event) => {
-            if (this.isUrlDiff) {
-                // Update the tab to the original bookmarked URL
-                chrome.tabs.update(this.tab.id, { url: this.bookmark.url }, (tab) => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Failed to restore tab URL:', chrome.runtime.lastError.message);
+            this.leftContainer = h('div',
+                {
+                    class: 'bookmark-left',
+                    onMouseEnter: () => {
+                        if (this.isUrlDiff) {
+                            this.textContainer.ref.classList.add('hint-visible');
+                            this.leftContainer.ref.classList.add('hint-bg');
+                        }
+                    },
+                    onMouseLeave: () => {
+                        this.textContainer.ref.classList.remove('hint-visible');
+                        this.leftContainer.ref.classList.remove('hint-bg');
+                    },
+                    onClick: (event) => {
+                        if (this.isUrlDiff) {
+                            // Update the tab to the original bookmarked URL
+                            chrome.tabs.update(this.tab.id, { url: this.bookmark.url }, (tab) => {
+                                if (chrome.runtime.lastError) {
+                                    console.error('Failed to restore tab URL:', chrome.runtime.lastError.message);
+                                }
+                            });
+                        }
                     }
-                });
-            }
-        });
-        return this.ref;
+                },
+                this.favicon = h(TabFavicon, { tab: this.bookmark }),
+                this.urlDiffIndicator = h('span', {
+                    class: 'url-diff-indicator',
+                    style: {'display': 'none'},
+                    title: 'Tab URL is different from bookmark URL'
+                }),
+            ),
+            this.textContainer = h('div', { class: 'bookmark-text-container' },
+                this.title = h('span', { class: 'tab-title', title: this.bookmark.title || this.bookmark.url },
+                    this.bookmark.title || this.bookmark.url
+                ),
+                h('span', { class: 'bookmark-url-hint' }, 'Back to the bookmarked URL')
+            ),
+            this.closeButton = h(CloseButton, {
+                onClick: (e) => {
+                    e.stopPropagation();
+                    chrome.tabs.remove(this.tab.id);
+                }
+            }),
+        );
+    }
+
+    componentDidMount() {
+        this.closeButton.ref.style.display = 'none';
     }
 
     getContextMenuItems() {
@@ -105,10 +101,10 @@ export class Bookmark extends Tab {
     setIsUrlDiff(isUrlDiff) {
         this.isUrlDiff = isUrlDiff;
         if (isUrlDiff) {
-            this.urlDiffIndicatorRef.style.display = '';
+            this.urlDiffIndicator.ref.style.display = '';
         } else {
-            this.urlDiffIndicatorRef.style.display = 'none';
-            this.textContainerRef.classList.remove('hint-visible');
+            this.urlDiffIndicator.ref.style.display = 'none';
+            this.textContainer.ref.classList.remove('hint-visible');
         }
     }
 
@@ -116,12 +112,15 @@ export class Bookmark extends Tab {
         this.setActive(false);
         this.setIsUrlDiff(false);
         this.tab = null;
+        this.updateTab(this.bookmark);
     }
 
     changeBookmark(id, changeInfo) {
         this.updateTab(changeInfo);
-        // Update the bookmark object
-        Object.assign(this.bookmark, changeInfo);
+    }
+
+    removeBookmark() {
+        this.ref.remove();
     }
 
     setTab(tab) {

@@ -1,8 +1,11 @@
 
 'use strict';
 
-export class NewTab {
-    constructor(tabList) {
+import { NanoReact, h } from '../nanoreact.js';
+
+export class NewTab extends NanoReact.Component {
+    constructor({ tabList }) {
+        super();
         this.tabList = tabList;
         this.pendingNewTabId = null;
     }
@@ -12,37 +15,36 @@ export class NewTab {
     }
 
     render() {
-        let shortcutLabel = crel('span', { class: 'tab-shortcut' },
-            crel('kbd', {}, navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'),
-            crel('kbd', {}, 'T')
-        );
-        this.ref = crel(
+        return h(
             'li',
             {
                 class: 'tab-item',
                 id: 'new-tab',
                 tabIndex: 0, // Make accessible
                 'aria-label': 'Open a new tab',
-            },
-            crel('span', {
-                class: 'tab-favicon',
-            }, '+'),
-            crel('span', {
-                class: 'tab-title',
-            }, 'New Tab'),
-            shortcutLabel
-        );
-        // Add click event to open a new tab
-        this.ref.addEventListener('click', (e) => {
-            console.log('New tab clicked');
-            e.preventDefault();
-            chrome.tabs.create({}, (tab) => {
-                if (chrome.runtime.lastError) {
-                    console.error('Failed to create new tab:', chrome.runtime.lastError.message);
+                onClick: (e) => {
+                    console.log('New tab clicked');
+                    e.preventDefault();
+                    chrome.tabs.create({}, (tab) => {
+                        if (chrome.runtime.lastError) {
+                            console.error('Failed to create new tab:', chrome.runtime.lastError.message);
+                        }
+                    });
                 }
-            });
-        });
-        return this.ref;
+            },
+            [
+                h('span', {
+                    class: 'tab-favicon',
+                }, '+'),
+                h('span', {
+                    class: 'tab-title',
+                }, 'New Tab'),
+                h('span', { class: 'tab-shortcut' },
+                    h('kbd', {}, navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'),
+                    h('kbd', {}, 'T')
+                )
+            ]
+        );
     }
 
     setPendingNewTab(tab) {

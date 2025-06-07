@@ -1,25 +1,28 @@
 'use strict';
 
+import { NanoReact, h } from '../nanoreact.js';
 import { NewTab } from './NewTab.js';
 import { Tab } from './Tab.js';
 
-export class TabList {
-    constructor(tabs) {
-        this.ref = null;
+export class TabList extends NanoReact.Component {
+    constructor({tabs}) {
+        super();
         this.tabs = tabs;
         this.draggedTabId = null;
         this.placeholder = null;
     }
 
     render() {
-        this.ref = document.getElementById('tab-list');
-        this.ref.innerHTML = '';
-
         // New Tab Button
-        this.newTab = new NewTab(this);
-        this.ref.appendChild(this.newTab.render());
+        this.newTab = h(NewTab, { tabList: this });
         this.tabs.set('new-tab', this.newTab);
 
+        return h('ul', { id: 'tab-list' }, [
+            this.newTab
+        ]);
+    }
+
+    componentDidMount() {
         // Load existing tabs
         chrome.tabs.query({}, (tabs) => {
             // Reverse addition to preserve order (because addTab adds at the top)
@@ -37,15 +40,17 @@ export class TabList {
             return;
         }
         // Create Tab component and DOM element
-        const tabComponent = new Tab(tab);
-        const tabElement = tabComponent.render({
+        // const tabComponent = new Tab(tab);
+        const tabComponent = h(Tab, {
+            tab: tab,
             onDragStart: this.handleDragStart.bind(this),
             onDragOver: this.handleDragOver.bind(this),
             onDrop: this.handleDrop.bind(this),
             onDragEnd: this.handleDragEnd.bind(this)
         });
-        // Insert at the top of the list (newest first)
+        const tabElement = NanoReact.render(tabComponent);
         if (this.newTab) {
+            // Insert at the top of the list (newest first)
             this.ref.insertBefore(tabElement, this.newTab.ref.nextSibling);
         } else {
             this.ref.appendChild(tabElement);
@@ -140,7 +145,7 @@ export class TabList {
 
     removeTab(tabId) {
         console.trace(`removeTab`, tabId);
-        this.tabs.get(tabId).removeTab();
+        this.tabs.get(tabId)?.removeTab();
         this.tabs.delete(tabId);
     }
 }
