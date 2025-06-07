@@ -1,7 +1,7 @@
 'use strict';
 
 import { Tab, TabFavicon, CloseButton } from './Tab.js';
-import { h } from '../nanoreact.js';
+import { h } from '../../nanoreact.js';
 
 
 export class Bookmark extends Tab {

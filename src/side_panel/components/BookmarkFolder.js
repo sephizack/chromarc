@@ -1,8 +1,8 @@
 'use strict';
 
-import { getFolderIconSVG } from '../icon_utils.js';
+import { getFolderIconSVG } from '../../icon_utils.js';
 import { Bookmark } from './Bookmark.js';
-import { NanoReact, h } from '../nanoreact.js';
+import { NanoReact, h } from '../../nanoreact.js';
 
 export class BookmarkFolder extends NanoReact.Component {
     constructor({ folder, bookmarks, urlIndex }) {

@@ -2,7 +2,7 @@
 
 import { Bookmark } from './Bookmark.js';
 import { BookmarkFolder } from './BookmarkFolder.js';
-import { NanoReact, h } from '../nanoreact.js';
+import { NanoReact, h } from '../../nanoreact.js';
 
 
 export class BookmarkList extends NanoReact.Component {

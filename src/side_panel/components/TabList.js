@@ -1,6 +1,6 @@
 'use strict';
 
-import { NanoReact, h } from '../nanoreact.js';
+import { NanoReact, h } from '../../nanoreact.js';
 import { NewTab } from './NewTab.js';
 import { Tab } from './Tab.js';
 

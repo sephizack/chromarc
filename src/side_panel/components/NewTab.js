@@ -1,7 +1,7 @@
 
 'use strict';
 
-import { NanoReact, h } from '../nanoreact.js';
+import { NanoReact, h } from '../../nanoreact.js';
 
 export class NewTab extends NanoReact.Component {
     constructor({ tabList }) {

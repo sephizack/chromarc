@@ -1,8 +1,8 @@
 
 'use strict';
 
-import { getFaviconFromCache } from '../icon_utils.js';
-import { NanoReact, h } from '../nanoreact.js';
+import { getFaviconFromCache } from '../../icon_utils.js';
+import { NanoReact, h } from '../../nanoreact.js';
 
 export class TabFavicon extends NanoReact.Component {
     constructor({ tab }) {
@@ -14,7 +14,7 @@ export class TabFavicon extends NanoReact.Component {
         console.log('TabFavicon.getFaviconUrl', this.tab);
         return this.tab?.status === 'loading'
             ? '../assets/spinner.svg'
-            : this.tab?.favIconUrl || getFaviconFromCache(this.tab?.url);
+            : getFaviconFromCache(this.tab?.url) || this.tab?.favIconUrl;
     }
 
     updateTab(changeInfo) {
