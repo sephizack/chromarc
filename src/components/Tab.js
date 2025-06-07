@@ -56,9 +56,11 @@ export class Tab {
                 },
                 onmouseenter: () => {
                     this.closeButtonRef.style.display = '';
+                    // this.setContextMenu(true);
                 },
                 onmouseleave: () => {
                     this.closeButtonRef.style.display = 'none';
+                    // this.setContextMenu(false);
                 }
             },
             this.faviconRef,
@@ -77,6 +79,23 @@ export class Tab {
                 chrome.tabs.remove(this.tab.id);
             }
         }, '\u00D7');
+    }
+
+    getContextMenuItems() {
+        return [
+            { id: 'tab-close', title: 'Close Tab', onclick: () => chrome.tabs.remove(this.tab.id) },
+            { id: 'tab-duplicate', title: 'Duplicate Tab', onclick: () => chrome.tabs.duplicate(this.tab.id) },
+            { id: 'tab-bookmark', title: 'Bookmark Tab', onclick: () => {
+                chrome.bookmarks.create({ title: this.tab.title, url: this.tab.url, parentId: '1'}, (bookmark) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Failed to bookmark tab:', chrome.runtime.lastError.message);
+                    } else {
+                        console.debug('Tab bookmarked:', bookmark);
+                        // TODO: use this to transfer the tab to the bookmark and delete the tab component
+                    }
+                });
+            }},
+        ]
     }
 
 

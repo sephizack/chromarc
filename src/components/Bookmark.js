@@ -89,6 +89,12 @@ export class Bookmark extends Tab {
         return this.ref;
     }
 
+    getContextMenuItems() {
+        return [
+            { id: 'bookmark-remove', title: 'Remove Bookmark', onclick: () => chrome.bookmarks.remove(this.bookmark.id) },
+        ]
+    }
+
     updateTab(changeInfo, _) {
         super.updateTab(changeInfo, _);
         // Stylish indicator if tab URL differs from bookmark URL

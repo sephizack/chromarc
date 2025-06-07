@@ -1,4 +1,6 @@
 
+'use strict';
+
 import { Settings } from './settings.js';
 
 chrome.action.onClicked.addListener((tab) => {

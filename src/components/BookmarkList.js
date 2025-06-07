@@ -8,6 +8,7 @@ export class BookmarkList {
         this.bookmarks = new Map();
         this.folders = new Map();
         this.urlIndex = new Map();
+        this.rootFolder = null;
     }
 
     render() {
@@ -20,21 +21,22 @@ export class BookmarkList {
             // Chrome's bookmarks tree: [0] is root, children: [0]=Bookmarks Bar, [1]=Other Bookmarks, [2]=Mobile Bookmarks
             const nodes = bookmarkTreeNodes[0].children;
             // Find the Bookmarks Bar node (usually id '1' or title 'Bookmarks Bar')
-            const bookmarksBar = nodes.find(
+            this.rootFolder = nodes.find(
                 node => node.id === '1' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar'
             );
-            if (!bookmarksBar || !bookmarksBar.children) {
+            if (!this.rootFolder || !this.rootFolder.children) {
                 console.error('Bookmarks Bar not found');
                 return;
             }
             // Only render Bookmarks Bar and its subfolders/bookmarks
-            bookmarksBar.children.forEach(child => {
+            this.rootFolder.children.forEach(child => {
                 this.addBookmark(child);
             });
         });
     }
 
     addBookmark(bookmark) {
+        console.trace(`addBookmark`, bookmark);
         if (bookmark.url) {
             const bookmarkComponent = new Bookmark(bookmark);
             this.bookmarks.set(bookmark.id, bookmarkComponent);
@@ -63,19 +65,9 @@ export class BookmarkList {
     }
 
     removeBookmark(id) {
-        const bookmarkComponent = this.bookmarks.get(id);
-        if (bookmarkComponent) {
-            if (bookmarkComponent.element.parentNode) {
-                bookmarkComponent.element.parentNode.removeChild(bookmarkComponent.element);
-            }
-            this.bookmarks.delete(id);
-        }
-        const folderComponent = this.folders.get(id);
-        if (folderComponent) {
-            if (folderComponent.element.parentNode) {
-                folderComponent.element.parentNode.removeChild(folderComponent.element);
-            }
-            this.folders.delete(id);
-        }
+        this.bookmarks.get(id)?.ref.remove();
+        this.bookmarks.delete(id);
+        this.folders.get(id)?.ref.remove();
+        this.folders.delete(id);
     }
 }
