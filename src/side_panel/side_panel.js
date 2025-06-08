@@ -40,22 +40,24 @@ export class SidePanel extends NanoReact.Component {
 
         // Context menu handling
         document.addEventListener('contextmenu', this.onContextMenu.bind(this));
-        chrome.contextMenus.onClicked.addListener((info, tab) => {
-            console.trace('contextMenus.onClicked', info, tab);
-            if (this.menuItems[info.menuItemId]) {
-                this.menuItems[info.menuItemId].onclick();
-            } else {
-                console.warn('No callback found for menu item:', info.menuItemId);
-            }
-        });
+        chrome.contextMenus.onClicked.addListener(this.onContextMenuClicked.bind(this));
 
         return h('div', { id: 'side_panel' }, [
-            this.bookmarkList = h(BookmarkList, { tabs: this.tabs }),
+            this.bookmarkList = h(BookmarkList,
+                {
+                    tabs: this.tabs,
+                    onTabCreated: this.onTabCreated.bind(this),
+                }),
             h('div', { class: 'section-divider-container' }, [
                 h('hr', { class: 'section-divider' }, []),
                 h(ClearTabsButton),
             ]),
-            this.tabList = h(TabList, { tabs: this.tabs }),
+            this.tabList = h(TabList,
+                {
+                    tabs: this.tabs,
+                    onTabBookmarked: this.onTabBookmarked.bind(this),
+                }
+            ),
         ]);
     }
 
@@ -84,13 +86,30 @@ export class SidePanel extends NanoReact.Component {
             console.info('Tab is bookmarked, adding to bookmarks:', tab);
             this.bookmarkList.addBookmarkedTab(tab);
         } else {
-            this.tabList.addTab(tab);
+            this.tabList.onTabCreated(tab);
         }
-        // If the tab is active and was added (in case of sequential new tab we only had 1),
-        // set it as the active tab
+        // If the tab is active and was added (in case of sequential new tab we only had 1), set it as the active tab
         if (tab.active && this.tabs.has(tab.id)) {
             this.setActiveTab(tab.id);
         }
+    }
+
+    onTabBookmarked(tab) {
+        chrome.bookmarks.create({ title: tab.title, url: tab.url, parentId: '1' }, (bookmark) => {
+            if (chrome.runtime.lastError) {
+                console.error('Failed to bookmark tab:', chrome.runtime.lastError.message);
+            } else {
+                console.debug('Tab bookmarked:', bookmark);
+                // Since the tab is now bookmarked, the simplest here is to remove and re-add the tab
+                // onTabCreated will see that the tab is bookmarked and handle it accordingly
+                this.onTabRemoved(tab.id);
+                if (this.activeTabId === tab.id) {
+                    // Reset active tab since it was removed
+                    this.activeTabId = null;
+                }
+                this.onTabCreated(tab);
+            }
+        });
     }
 
     onTabRemoved(tabId) {
@@ -141,6 +160,15 @@ export class SidePanel extends NanoReact.Component {
                 contexts: ['all'],
                 documentUrlPatterns: [chrome.runtime.getURL('side_panel/side_panel.html')],
             });
+        }
+    }
+
+    onContextMenuClicked(info, tab) {
+        console.trace('contextMenus.onClicked', info, tab);
+        if (this.menuItems[info.menuItemId]) {
+            this.menuItems[info.menuItemId].onclick();
+        } else {
+            console.warn('No callback found for menu item:', info.menuItemId);
         }
     }
 }

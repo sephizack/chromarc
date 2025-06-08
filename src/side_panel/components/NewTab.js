@@ -4,9 +4,10 @@
 import { NanoReact, h } from '../../nanoreact.js';
 
 export class NewTab extends NanoReact.Component {
-    constructor({ tabList }) {
+    constructor({ tabs, onTabCreated }) {
         super();
-        this.tabList = tabList;
+        this.tabs = tabs;
+        this.onTabCreated = onTabCreated;
         this.pendingNewTabId = null;
     }
 
@@ -59,7 +60,7 @@ export class NewTab extends NanoReact.Component {
             } else {
                 // Set this tab as the pending new tab
                 this.pendingNewTabId = tab.id;
-                this.tabList.tabs.set(tab.id, this);
+                this.tabs.set(tab.id, this);
             }
         } else {
             console.log('Detected new tab but not active, ignoring:', tab.id);
@@ -75,7 +76,7 @@ export class NewTab extends NanoReact.Component {
             }
             console.info('Extracting pending new tab:', tab);
             this.pendingNewTabId = null;
-            this.tabList.addTab(tab);
+            this.onTabCreated(tab);
             this.setActive(false);
         }
     }

@@ -6,9 +6,10 @@ import { NanoReact, h } from '../../nanoreact.js';
 
 
 export class BookmarkList extends NanoReact.Component {
-    constructor({ tabs }) {
+    constructor({ tabs, onTabCreated }) {
         super();
         this.tabs = tabs;
+        this.onTabCreated = onTabCreated;
         this.bookmarks = new Map();
         this.folders = new Map();
         this.urlIndex = new Map();
@@ -62,7 +63,7 @@ export class BookmarkList extends NanoReact.Component {
     addBookmark(bookmark) {
         console.trace(`addBookmark`, bookmark);
         if (bookmark.url) {
-            const bookmarkComponent = h(Bookmark, { bookmark });
+            const bookmarkComponent = h(Bookmark, { bookmark, onTabCreated: this.onTabCreated });
             this.bookmarks.set(bookmark.id, bookmarkComponent);
             this.urlIndex.set(bookmark.url, bookmarkComponent);
             this.ref.appendChild(NanoReact.render(bookmarkComponent));
@@ -89,11 +90,12 @@ export class BookmarkList extends NanoReact.Component {
     }
 
     removeBookmark(id) {
+        console.trace(`removeBookmark`, id);
         let bookmark = this.bookmarks.get(id);
         if (bookmark) {
-            bookmark.removeBookmark();
             this.bookmarks.delete(id);
             this.urlIndex.delete(bookmark.bookmark.url);
+            bookmark.removeBookmark();
         }
         // TODO: Not sure it's the right way to remove folder...
         this.folders.get(id)?.ref.remove();

@@ -5,16 +5,17 @@ import { NewTab } from './NewTab.js';
 import { Tab } from './Tab.js';
 
 export class TabList extends NanoReact.Component {
-    constructor({tabs}) {
+    constructor({tabs, onTabBookmarked}) {
         super();
         this.tabs = tabs;
+        this.onTabBookmarked = onTabBookmarked;
         this.draggedTabId = null;
         this.placeholder = null;
     }
 
     render() {
         // New Tab Button
-        this.newTab = h(NewTab, { tabList: this });
+        this.newTab = h(NewTab, { tabs: this.tabs, onTabCreated: this.onTabCreated.bind(this) });
         this.tabs.set('new-tab', this.newTab);
 
         return h('ul', { id: 'tab-list' }, [
@@ -25,15 +26,15 @@ export class TabList extends NanoReact.Component {
     componentDidMount() {
         // Load existing tabs
         chrome.tabs.query({}, (tabs) => {
-            // Reverse addition to preserve order (because addTab adds at the top)
+            // Reverse addition to preserve order (because onTabCreated adds at the top)
             tabs.reverse().forEach(tab => {
-                this.addTab(tab);
+                this.onTabCreated(tab);
             });
         });
     }
 
-    addTab(tab) {
-        console.trace(`addTab`, tab);
+    onTabCreated(tab) {
+        console.trace(`onTabCreated`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
         if (NewTab.isNewTab(tab)) {
             this.newTab.setPendingNewTab(tab);
@@ -46,7 +47,8 @@ export class TabList extends NanoReact.Component {
             onDragStart: this.handleDragStart.bind(this),
             onDragOver: this.handleDragOver.bind(this),
             onDrop: this.handleDrop.bind(this),
-            onDragEnd: this.handleDragEnd.bind(this)
+            onDragEnd: this.handleDragEnd.bind(this),
+            onTabBookmarked: this.onTabBookmarked
         });
         const tabElement = NanoReact.render(tabComponent);
         if (this.newTab) {

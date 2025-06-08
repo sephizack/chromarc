@@ -5,10 +5,11 @@ import { h } from '../../nanoreact.js';
 
 
 export class Bookmark extends Tab {
-    constructor({bookmark}) {
+    constructor({bookmark, onTabCreated}) {
         super({});
         this.bookmark = bookmark;
         this.isUrlDiff = false;
+        this.onTabCreated = onTabCreated;
     }
 
     render() {
@@ -121,17 +122,13 @@ export class Bookmark extends Tab {
 
     removeBookmark() {
         this.ref.remove();
+        if (this.tab) {
+            this.onTabCreated(this.tab);
+        }
     }
 
     setTab(tab) {
         this.tab = tab;
     }
 
-    setActive(isActive) {
-        if (isActive) {
-            this.ref.classList.add('active');
-        } else {
-            this.ref.classList.remove('active');
-        }
-    }
 }

@@ -47,7 +47,7 @@ export function CloseButton({ onClick }) {
 
 
 export class Tab extends NanoReact.Component {
-    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd }) {
+    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd, onTabBookmarked }) {
         super();
         // --- Props
         this.tab = tab;
@@ -55,6 +55,7 @@ export class Tab extends NanoReact.Component {
         this.onDragOver = onDragOver;
         this.onDrop = onDrop;
         this.onDragEnd = onDragEnd;
+        this.onTabBookmarked = onTabBookmarked;
         // --- DOM Elements
         this.favicon = null;
         this.title = null;
@@ -103,14 +104,7 @@ export class Tab extends NanoReact.Component {
             { id: 'tab-close', title: 'Close Tab', onclick: () => chrome.tabs.remove(this.tab.id) },
             { id: 'tab-duplicate', title: 'Duplicate Tab', onclick: () => chrome.tabs.duplicate(this.tab.id) },
             { id: 'tab-bookmark', title: 'Bookmark Tab', onclick: () => {
-                chrome.bookmarks.create({ title: this.tab.title, url: this.tab.url, parentId: '1'}, (bookmark) => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Failed to bookmark tab:', chrome.runtime.lastError.message);
-                    } else {
-                        console.debug('Tab bookmarked:', bookmark);
-                        // TODO: use this to transfer the tab to the bookmark and delete the tab component
-                    }
-                });
+                this.onTabBookmarked(this.tab);
             }},
         ]
     }
