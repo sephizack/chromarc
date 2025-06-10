@@ -33,11 +33,17 @@
     "open_in_tab": false
   },
   "commands": {
-    "Open-side-panel": {
+    "toggle-side-panel": {
       "suggested_key": {
-        "default": "Ctrl+S"
+        "default": "Ctrl+Shift+S"
       },
-      "description": "Open side panel"
+      "description": "Toggle side panel"
+    },
+    "toggle-last-active-tabs": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+2"
+      },
+      "description": "Toggle 2 last active tabs"
     }
   }
 }
