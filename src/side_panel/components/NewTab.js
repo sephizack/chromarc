@@ -83,6 +83,9 @@ export class NewTab extends NanoReact.Component {
 
     removeTab() {
         // Nothing to do, we don't remove the New Tab component
+        console.debug('Cleaning pending new tab');
+        this.pendingNewTabId = null;
+        this.setActive(false);
     }
 
     setActive(isActive) {
@@ -92,9 +95,9 @@ export class NewTab extends NanoReact.Component {
             this.ref.classList.remove('active');
             // If there was a pending new tab, close it
             if (this.pendingNewTabId) {
-                console.log('Deactivated tab was pending new tab, closing it now.');
+                console.debug('Deactivated tab was pending new tab, closing it now.');
                 this._closeTab(this.pendingNewTabId);
-                this.pendingNewTabId = null;
+                this.removeTab();
             }
         }
     }

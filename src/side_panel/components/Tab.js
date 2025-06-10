@@ -11,7 +11,6 @@ export class TabFavicon extends NanoReact.Component {
     }
 
     getFaviconUrl() {
-        console.log('TabFavicon.getFaviconUrl', this.tab);
         return this.tab?.status === 'loading'
             ? '../assets/spinner.svg'
             : getFaviconFromCache(this.tab?.url) || this.tab?.favIconUrl;
