@@ -5,8 +5,8 @@ import { h } from '../../nanoreact.js';
 
 
 export class Bookmark extends Tab {
-    constructor({bookmark, onTabCreated}) {
-        super({});
+    constructor({bookmark, onDrop, onTabCreated}) {
+        super({onDrop: onDrop});
         this.bookmark = bookmark;
         this.isUrlDiff = false;
         this.onTabCreated = onTabCreated;
@@ -18,6 +18,7 @@ export class Bookmark extends Tab {
             {
                 class: 'bookmark-item',
                 id: 'bookmark-' + this.bookmark.id,
+                draggable: true,
                 onMouseEnter: () => {
                     if (this.tab) {
                         this.closeButton.ref.style.display = '';
@@ -34,7 +35,11 @@ export class Bookmark extends Tab {
                         console.log('Opening bookmark in a new tab:', this.bookmark.id);
                         chrome.tabs.create({ url: this.bookmark.url });
                     }
-                }
+                },
+                onDragStart: (e) => this.onDragStart(e),
+                onDragEnd: (e) => this.onDragEnd(e),
+                onDragOver: (e) => this.onDragOver(e),
+                onDrop: this.onDrop,
             },
             this.leftContainer = h('div',
                 {
@@ -92,8 +97,8 @@ export class Bookmark extends Tab {
         ]
     }
 
-    updateTab(changeInfo, _) {
-        super.updateTab(changeInfo, _);
+    onTabUpdated(changeInfo, _) {
+        super.onTabUpdated(changeInfo, _);
         // Stylish indicator if tab URL differs from bookmark URL
         const tabUrl = this.tab.url || this.tab.pendingUrl;
         this.setIsUrlDiff(tabUrl !== this.bookmark.url);
@@ -109,18 +114,18 @@ export class Bookmark extends Tab {
         }
     }
 
-    removeTab() {
+    onTabRemoved() {
         this.setActive(false);
         this.setIsUrlDiff(false);
         this.tab = null;
-        this.updateTab(this.bookmark);
+        this.onTabUpdated(this.bookmark);
     }
 
-    changeBookmark(id, changeInfo) {
-        this.updateTab(changeInfo);
+    onBookmarkChanged(id, changeInfo) {
+        this.onTabUpdated(changeInfo);
     }
 
-    removeBookmark() {
+    onBookmarkRemoved() {
         this.ref.remove();
         if (this.tab) {
             this.onTabCreated(this.tab);

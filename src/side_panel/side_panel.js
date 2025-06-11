@@ -55,6 +55,7 @@ export class SidePanel extends NanoReact.Component {
                 {
                     tabs: this.tabs,
                     onTabCreated: this.onTabCreated.bind(this),
+                    bookmarkTab: this.bookmarkTab.bind(this),
                 }),
             h('div', { class: 'section-divider-container' }, [
                 h('hr', { class: 'section-divider' }, []),
@@ -63,10 +64,20 @@ export class SidePanel extends NanoReact.Component {
             this.tabList = h(TabList,
                 {
                     tabs: this.tabs,
-                    onTabBookmarked: this.onTabBookmarked.bind(this),
+                    bookmarkTab: this.bookmarkTab.bind(this),
                 }
             ),
         ]);
+    }
+
+    componentDidMount() {
+        // Load existing tabs
+        chrome.tabs.query({}, (tabs) => {
+            // Reverse addition to preserve order (because onTabCreated adds at the top)
+            tabs.reverse().forEach(tab => {
+                this.onTabCreated(tab);
+            });
+        });
     }
 
     setActiveTab(tabId) {
@@ -102,8 +113,8 @@ export class SidePanel extends NanoReact.Component {
         }
     }
 
-    onTabBookmarked(tab) {
-        chrome.bookmarks.create({ title: tab.title, url: tab.url, parentId: '1' }, (bookmark) => {
+    bookmarkTab(tab, parentId) {
+        chrome.bookmarks.create({ title: tab.title, url: tab.url, parentId: parentId }, (bookmark) => {
             if (chrome.runtime.lastError) {
                 console.error('Failed to bookmark tab:', chrome.runtime.lastError.message);
             } else {
@@ -121,11 +132,11 @@ export class SidePanel extends NanoReact.Component {
     }
 
     onTabRemoved(tabId) {
-        this.tabList.removeTab(tabId);
+        this.tabList.onTabRemoved(tabId);
     }
 
     onTabUpdated(tabId, changeInfo, tab) {
-        this.tabList.updateTab(tabId, changeInfo, tab);
+        this.tabList.onTabUpdated(tabId, changeInfo, tab);
     }
 
     onTabActivated(activeInfo) {

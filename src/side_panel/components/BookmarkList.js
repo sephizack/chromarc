@@ -1,23 +1,23 @@
 'use strict';
 
-import { Bookmark } from './Bookmark.js';
 import { BookmarkFolder } from './BookmarkFolder.js';
+import { BookmarkContainer } from './BookmarkContainer.js';
+import { TabPlaceholder } from './TabPlaceholder.js';
 import { NanoReact, h } from '../../nanoreact.js';
 
 
-export class BookmarkList extends NanoReact.Component {
-    constructor({ tabs, onTabCreated }) {
-        super();
+export class BookmarkList extends BookmarkContainer {
+    constructor({ tabs, onTabCreated, bookmarkTab }) {
+        super({ onTabCreated, bookmarkTab, folderClass: BookmarkFolder });
         this.tabs = tabs;
-        this.onTabCreated = onTabCreated;
-        this.bookmarks = new Map();
-        this.folders = new Map();
-        this.urlIndex = new Map();
         this.rootFolder = null;
     }
 
     render() {
-        return h('ul', { id: 'bookmark-list' }, []);
+        this.childContainer = h('ul', {
+            id: 'bookmark-list',
+        }, []);
+        return this.childContainer;
     }
 
     componentDidMount() {
@@ -37,6 +37,7 @@ export class BookmarkList extends NanoReact.Component {
                 console.error('Bookmarks Bar not found');
                 return;
             }
+            console.debug('Bookmarks Bar found:', this.rootFolder);
             // Only render Bookmarks Bar and its subfolders/bookmarks
             this.rootFolder.children.forEach(child => {
                 this.addBookmark(child);
@@ -45,9 +46,9 @@ export class BookmarkList extends NanoReact.Component {
 
         // Bookmarks incremental updates
         chrome.bookmarks.onCreated.addListener((id, bookmark) => this.addBookmark(bookmark));
-        chrome.bookmarks.onRemoved.addListener(this.removeBookmark.bind(this));
-        chrome.bookmarks.onChanged.addListener(this.changeBookmark.bind(this));
-        chrome.bookmarks.onMoved.addListener((e) => console.error('chrome.bookmarks.onMoved not implemented yet'));
+        chrome.bookmarks.onRemoved.addListener(this.onBookmarkRemoved.bind(this));
+        chrome.bookmarks.onChanged.addListener(this.onBookmarkChanged.bind(this));
+        chrome.bookmarks.onMoved.addListener((id, moveInfo) => console.error('chrome.bookmarks.onMoved not implemented yet', id, moveInfo));
     }
 
     isTabBookmarked(tab) {
@@ -56,49 +57,10 @@ export class BookmarkList extends NanoReact.Component {
 
     addBookmarkedTab(tab) {
         const bookmarkComponent = this.urlIndex.get(tab.pendingUrl || tab.url);
-        bookmarkComponent.setTab(tab);
+        if (bookmarkComponent && bookmarkComponent.setTab) {
+            bookmarkComponent.setTab(tab);
+        }
         this.tabs.set(tab.id, bookmarkComponent);
     }
 
-    addBookmark(bookmark) {
-        console.trace(`addBookmark`, bookmark);
-        if (bookmark.url) {
-            const bookmarkComponent = h(Bookmark, { bookmark, onTabCreated: this.onTabCreated });
-            this.bookmarks.set(bookmark.id, bookmarkComponent);
-            this.urlIndex.set(bookmark.url, bookmarkComponent);
-            this.ref.appendChild(NanoReact.render(bookmarkComponent));
-        } else {
-            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, folders: this.folders, urlIndex: this.urlIndex });
-            this.folders.set(bookmark.id, folderComponent);
-            this.ref.appendChild(NanoReact.render(folderComponent));
-        }
-    }
-
-    changeBookmark(id, changeInfo) {
-        const bookmarkComponent = this.bookmarks.get(id);
-        if (bookmarkComponent) {
-            bookmarkComponent.changeBookmark(changeInfo);
-        }
-        // For folders, just update the title
-        const folderComponent = this.folders.get(id);
-        if (folderComponent && changeInfo.title !== undefined) {
-            const titleEl = folderComponent.ref.querySelector('.folder-title');
-            if (titleEl) {
-                titleEl.textContent = changeInfo.title || 'Folder';
-            }
-        }
-    }
-
-    removeBookmark(id) {
-        console.trace(`removeBookmark`, id);
-        let bookmark = this.bookmarks.get(id);
-        if (bookmark) {
-            this.bookmarks.delete(id);
-            this.urlIndex.delete(bookmark.bookmark.url);
-            bookmark.removeBookmark();
-        }
-        // TODO: Not sure it's the right way to remove folder...
-        this.folders.get(id)?.ref.remove();
-        this.folders.delete(id);
-    }
 }

@@ -3,6 +3,8 @@
 
 import { getFaviconFromCache } from '../../icon_utils.js';
 import { NanoReact, h } from '../../nanoreact.js';
+import { TabPlaceholder } from './TabPlaceholder.js';
+
 
 export class TabFavicon extends NanoReact.Component {
     constructor({ tab }) {
@@ -16,7 +18,7 @@ export class TabFavicon extends NanoReact.Component {
             : getFaviconFromCache(this.tab?.url) || this.tab?.favIconUrl;
     }
 
-    updateTab(changeInfo) {
+    onTabUpdated(changeInfo) {
         // Show spinner if loading, otherwise show favicon
         if (changeInfo.status !== undefined) {
             this.ref.src = this.getFaviconUrl();
@@ -46,15 +48,12 @@ export function CloseButton({ onClick }) {
 
 
 export class Tab extends NanoReact.Component {
-    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd, onTabBookmarked }) {
+    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd, bookmarkTab }) {
         super();
         // --- Props
         this.tab = tab;
-        this.onDragStart = onDragStart;
-        this.onDragOver = onDragOver;
         this.onDrop = onDrop;
-        this.onDragEnd = onDragEnd;
-        this.onTabBookmarked = onTabBookmarked;
+        this.bookmarkTab = bookmarkTab;
         // --- DOM Elements
         this.favicon = null;
         this.title = null;
@@ -72,16 +71,16 @@ export class Tab extends NanoReact.Component {
                     e.stopPropagation();
                     chrome.tabs.update(this.tab.id, { active: true });
                 },
-                onDragStart: (e) => this.onDragStart(e, this.tab.id),
-                onDragOver: (e) => this.onDragOver(e, this.tab.id),
-                onDrop: (e) => this.onDrop(e, this.tab.id),
-                onDragEnd: (e) => this.onDragEnd(e, this.tab.id),
+                onMouseLeave: () => {
+                    this.closeButton.ref.style.display = 'none';
+                },
+                onDragStart: (e) => this.onDragStart(e),
+                onDragEnd: (e) => this.onDragEnd(e),
+                onDragOver: (e) => this.onDragOver(e),
+                onDrop: this.onDrop,
                 onMouseEnter: () => {
                     this.closeButton.ref.style.display = '';
                 },
-                onMouseLeave: () => {
-                    this.closeButton.ref.style.display = 'none';
-                }
             },
             this.favicon = h(TabFavicon, { tab: this.tab }),
             this.title = h('span', { class: 'tab-title' }, this.tab.title || this.tab.url || 'Loading...'),
@@ -103,12 +102,39 @@ export class Tab extends NanoReact.Component {
             { id: 'tab-close', title: 'Close Tab', onclick: () => chrome.tabs.remove(this.tab.id) },
             { id: 'tab-duplicate', title: 'Duplicate Tab', onclick: () => chrome.tabs.duplicate(this.tab.id) },
             { id: 'tab-bookmark', title: 'Bookmark Tab', onclick: () => {
-                this.onTabBookmarked(this.tab);
+                // Attach to the Bookmark Bar
+                this.bookmarkTab(this.tab, '1');
             }},
         ]
     }
 
-    updateTab(changeInfo, _) {
+    onDragStart(e) {
+        console.log('Drag start event triggered for tab:', this.tab);
+        e.dataTransfer.effectAllowed = 'move';
+        // Create and insert placeholder
+        TabPlaceholder.createFor(this, this.onDrop);
+    }
+
+    onDragOver(e) {
+        e.preventDefault();
+        // Move placeholder before or after depending on mouse position
+        const rect = this.ref.getBoundingClientRect();
+        const before = (e.clientY - rect.top) < rect.height / 2;
+        if (before) {
+            TabPlaceholder.insertBefore(this.ref);
+        } else {
+            TabPlaceholder.insertAfter(this.ref);
+        }
+        TabPlaceholder.setOnDrop(this.onDrop);
+    }
+
+    onDragEnd(e) {
+        console.log('Drag end event triggered for tab:', this.tab);
+        this.ref.style.display = '';
+        TabPlaceholder.remove();
+    }
+
+    onTabUpdated(changeInfo, _) {
         if (this.tab) {
             Object.assign(this.tab, changeInfo);
         }
@@ -120,10 +146,10 @@ export class Tab extends NanoReact.Component {
         if (changeInfo.url !== undefined) {
             this.title.ref.title = this.tab.url;
         }
-        this.favicon.updateTab(changeInfo);
+        this.favicon.onTabUpdated(changeInfo);
     }
 
-    removeTab() {
+    onTabRemoved() {
         this.ref.remove();
     }
 

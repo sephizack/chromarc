@@ -67,8 +67,7 @@ export class NewTab extends NanoReact.Component {
         }
     }
 
-    updateTab(changeInfo, tab) {
-        // console.warn('NewTab does not support updates');
+    onTabUpdated(changeInfo, tab) {
         if (tab.id === this.pendingNewTabId) {
             if (NewTab.isNewTab(tab)) {
                 // Nothing to do, still pending
@@ -81,7 +80,7 @@ export class NewTab extends NanoReact.Component {
         }
     }
 
-    removeTab() {
+    onTabRemoved() {
         // Nothing to do, we don't remove the New Tab component
         console.debug('Cleaning pending new tab');
         this.pendingNewTabId = null;
@@ -97,7 +96,7 @@ export class NewTab extends NanoReact.Component {
             if (this.pendingNewTabId) {
                 console.debug('Deactivated tab was pending new tab, closing it now.');
                 this._closeTab(this.pendingNewTabId);
-                this.removeTab();
+                this.onTabRemoved();
             }
         }
     }

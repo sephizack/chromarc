@@ -3,14 +3,13 @@
 import { NanoReact, h } from '../../nanoreact.js';
 import { NewTab } from './NewTab.js';
 import { Tab } from './Tab.js';
+import { TabPlaceholder } from './TabPlaceholder.js';
 
 export class TabList extends NanoReact.Component {
-    constructor({tabs, onTabBookmarked}) {
+    constructor({ tabs, bookmarkTab }) {
         super();
         this.tabs = tabs;
-        this.onTabBookmarked = onTabBookmarked;
-        this.draggedTabId = null;
-        this.placeholder = null;
+        this.bookmarkTab = bookmarkTab;
     }
 
     render() {
@@ -18,19 +17,11 @@ export class TabList extends NanoReact.Component {
         this.newTab = h(NewTab, { tabs: this.tabs, onTabCreated: this.onTabCreated.bind(this) });
         this.tabs.set('new-tab', this.newTab);
 
-        return h('ul', { id: 'tab-list' }, [
+        return h('ul', {
+            id: 'tab-list',
+        }, [
             this.newTab
         ]);
-    }
-
-    componentDidMount() {
-        // Load existing tabs
-        chrome.tabs.query({}, (tabs) => {
-            // Reverse addition to preserve order (because onTabCreated adds at the top)
-            tabs.reverse().forEach(tab => {
-                this.onTabCreated(tab);
-            });
-        });
     }
 
     onTabCreated(tab) {
@@ -41,14 +32,10 @@ export class TabList extends NanoReact.Component {
             return;
         }
         // Create Tab component and DOM element
-        // const tabComponent = new Tab(tab);
         const tabComponent = h(Tab, {
             tab: tab,
-            onDragStart: this.handleDragStart.bind(this),
-            onDragOver: this.handleDragOver.bind(this),
-            onDrop: this.handleDrop.bind(this),
-            onDragEnd: this.handleDragEnd.bind(this),
-            onTabBookmarked: this.onTabBookmarked
+            onDrop: this.onDrop.bind(this),
+            bookmarkTab: this.bookmarkTab
         });
         const tabElement = NanoReact.render(tabComponent);
         if (this.newTab) {
@@ -60,94 +47,34 @@ export class TabList extends NanoReact.Component {
         this.tabs.set(tab.id, tabComponent);
     }
 
-    handleDragStart(e, tabId) {
-        console.log('Drag start event triggered for tab:', tabId);
-        this.draggedTabId = tabId;
-        e.dataTransfer.effectAllowed = 'move';
-        // Create and insert placeholder
-        this.placeholder = document.createElement('li');
-        this.placeholder.className = 'tab-placeholder';
-        this.placeholder.style.height = e.target.offsetHeight + 'px';
-        this.placeholder.style.background = 'rgba(255,255,255,0.08)';
-        this.placeholder.style.border = '2px dashed #aaa';
-        this.placeholder.style.margin = e.target.style.margin;
-        this.placeholder.ondragover = (e) => {
-            e.preventDefault();
-        };
-        this.placeholder.ondrop = (e) => {
-            e.preventDefault();
-            this.handleDrop(e, null);
-        };
-        this.ref.ondragover = (e) => {
-            e.preventDefault();
-        }
-        this.ref.ondrop = (e) => {
-            e.preventDefault();
-            this.handleDrop(e, null);
-        };
-        e.target.parentNode.insertBefore(this.placeholder, e.target.nextSibling);
-        // Hide the dragged tab visually
-        setTimeout(() => {
-            e.target.style.display = 'none';
-        }, 0);
-    }
-
-    handleDragOver(e, tabId) {
-        console.log('Drag over event triggered for tab:', tabId);
+    async onDrop(e) {
         e.preventDefault();
-        if (!this.placeholder || tabId === this.draggedTabId) return;
-        const overTab = this.tabs.get(tabId)?.ref;
-        if (!overTab) return;
-        // Move placeholder before or after depending on mouse position
-        const rect = overTab.getBoundingClientRect();
-        const before = (e.clientY - rect.top) < rect.height / 2;
-        if (before) {
-            if (overTab.parentNode.children[0] === overTab) {
-                overTab.parentNode.insertBefore(this.placeholder, overTab);
-            } else {
-                overTab.parentNode.insertBefore(this.placeholder, overTab);
-            }
-        } else {
-            overTab.parentNode.insertBefore(this.placeholder, overTab.nextSibling);
+        const draggedObject = TabPlaceholder.getDraggedObject();
+        console.log('Drop event triggered in tab list:', draggedObject);
+        switch (draggedObject.type) {
+            case 'Tab':
+                TabPlaceholder.insertDraggedObject();
+                // Find the new position of the dragged tab in the list and move it in Chrome
+                // *DO NOT change the order*, otherwise you risk race conditions
+                const tabIndex = Array.from(this.ref.children).indexOf(draggedObject.ref) - 1; // - 1 because the New Tab button
+                chrome.tabs.move(draggedObject.tab.id, { index: tabIndex });
+                break;
+            case 'Bookmark':
+                chrome.bookmarks.remove(draggedObject.bookmark.id)
+            default:
+                console.error('Unknown drop type:', draggedObject);
+                break;
         }
     }
 
-    handleDrop(e, tabId) {
-        console.log('Drop event triggered for tab:', tabId);
-        e.preventDefault();
-        if (!this.placeholder) return;
-        const draggedTab = this.tabs.get(this.draggedTabId)?.ref;
-        if (!draggedTab) return;
-        // Always insert draggedTab at the placeholder's position
-        this.placeholder.parentNode.insertBefore(draggedTab, this.placeholder);
-        draggedTab.style.display = '';
-        this.cleanupDrag();
+    onTabUpdated(tabId, changeInfo, tab) {
+        console.trace(`onTabUpdated`, tabId, changeInfo, tab);
+        this.tabs.get(tabId).onTabUpdated(changeInfo, tab);
     }
 
-    handleDragEnd(e, tabId) {
-        console.log('Drag end event triggered for tab:', tabId);
-        if (!this.placeholder) return;
-        const draggedTab = this.tabs.get(this.draggedTabId)?.ref;
-        if (draggedTab) draggedTab.style.display = '';
-        this.cleanupDrag();
-    }
-
-    cleanupDrag() {
-        if (this.placeholder && this.placeholder.parentNode) {
-            this.placeholder.parentNode.removeChild(this.placeholder);
-        }
-        this.placeholder = null;
-        this.draggedTabId = null;
-    }
-
-    updateTab(tabId, changeInfo, tab) {
-        console.trace(`updateTab`, tabId, changeInfo, tab);
-        this.tabs.get(tabId).updateTab(changeInfo, tab);
-    }
-
-    removeTab(tabId) {
-        console.trace(`removeTab`, tabId);
-        this.tabs.get(tabId)?.removeTab();
+    onTabRemoved(tabId) {
+        console.trace(`onTabRemoved`, tabId);
+        this.tabs.get(tabId)?.onTabRemoved();
         this.tabs.delete(tabId);
     }
 }
