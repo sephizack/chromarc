@@ -12,6 +12,14 @@ function ClearTabsButton() {
     return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
 }
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.trace('Received message in side panel:', message);
+    if (message === 'closeSidePanel') {
+        window.close();
+        sendResponse("CLOSED")
+    }
+})
+
 export class SidePanel extends NanoReact.Component {
     constructor() {
         super();

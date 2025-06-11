@@ -9,6 +9,60 @@ chrome.action.onClicked.addListener((tab) => {
     }
 });
 
+chrome.commands.onCommand.addListener((command, tab) => {
+    console.log(`Command: ${command}`);
+    if (command === 'toggle-side-panel') {
+        actionToggleSidePanel();
+    }
+    else if (command === 'toggle-last-active-tabs') {
+        actionToggleLastActiveTabs();
+    }
+});
+
+async function actionToggleSidePanel() {
+    chrome.runtime.sendMessage('toggleSidePanel');
+    if (chrome.sidePanel) {
+        chrome.sidePanel.open({ windowId: tab.windowId });
+        chrome.runtime.sendMessage('closeSidePanel',  (response) => {
+            if (response == 'CLOSED') {
+                console.log('Side panel closed properly');
+            } else {
+                console.log('Response from side panel:', response);
+            }
+        });
+    } else {
+        console.warn('Side panel API is not available in this browser.');
+    }
+}
+
+async function actionToggleLastActiveTabs() {
+    console.log('Toggling last active tabs');
+    chrome.tabs.query({}, tabs => {
+        const lastActiveTab = tabs.reduce((mostRecent, tab) => {
+            if (tab.active) {
+                return mostRecent; // Skip the active tab
+            }
+            if (!mostRecent || !mostRecent.lastAccessed) {
+                return tab; // If no most recent found, return current tab
+            }
+            if (tab.lastAccessed > mostRecent.lastAccessed) {
+                return tab;
+            }
+            return mostRecent;
+        }, null);
+
+        if (lastActiveTab) {
+            console.log(`Last active tab: ${lastActiveTab.title} (ID: ${lastActiveTab.id})`);
+            // Focus the last active tab
+            chrome.tabs.update(lastActiveTab.id, { active: true }, () => {
+                console.log(`Focused tab: ${lastActiveTab.title}`);
+            });
+        } else {
+            console.warn('No last active tab found');
+        }
+    });
+}
+
 async function closeOldTabs() {
     let settings = await Settings.loadFromStorage();
     console.trace(`closeOldTabs (expirationTime: ${settings.tabExpirationMs / (60 * 1000)} min)`);
