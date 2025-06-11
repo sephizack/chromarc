@@ -68,7 +68,7 @@ export class BookmarkList extends NanoReact.Component {
             this.urlIndex.set(bookmark.url, bookmarkComponent);
             this.ref.appendChild(NanoReact.render(bookmarkComponent));
         } else {
-            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, urlIndex: this.urlIndex });
+            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, folders: this.folders, urlIndex: this.urlIndex });
             this.folders.set(bookmark.id, folderComponent);
             this.ref.appendChild(NanoReact.render(folderComponent));
         }
