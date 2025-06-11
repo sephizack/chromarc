@@ -10,16 +10,16 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 chrome.commands.onCommand.addListener((command, tab) => {
-    console.log(`Command: ${command}`);
+    console.log(`Command received: ${command}`);
     if (command === 'toggle-side-panel') {
-        actionToggleSidePanel();
+        actionToggleSidePanel(tab);
     }
     else if (command === 'toggle-last-active-tabs') {
-        actionToggleLastActiveTabs();
+        actionToggleLastActiveTabs(tab);
     }
 });
 
-async function actionToggleSidePanel() {
+async function actionToggleSidePanel(tab) {
     chrome.runtime.sendMessage('toggleSidePanel');
     if (chrome.sidePanel) {
         chrome.sidePanel.open({ windowId: tab.windowId });
@@ -35,7 +35,7 @@ async function actionToggleSidePanel() {
     }
 }
 
-async function actionToggleLastActiveTabs() {
+async function actionToggleLastActiveTabs(tab) {
     console.log('Toggling last active tabs');
     chrome.tabs.query({}, tabs => {
         const lastActiveTab = tabs.reduce((mostRecent, tab) => {
