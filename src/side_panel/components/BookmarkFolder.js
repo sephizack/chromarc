@@ -5,10 +5,11 @@ import { Bookmark } from './Bookmark.js';
 import { NanoReact, h } from '../../nanoreact.js';
 
 export class BookmarkFolder extends NanoReact.Component {
-    constructor({ folder, bookmarks, urlIndex }) {
+    constructor({ folder, bookmarks, folders, urlIndex }) {
         super();
         this.folder = folder;
         this.bookmarks = bookmarks;
+        this.folders = folders;
         this.urlIndex = urlIndex;
         this.isOpen = false;
     }
@@ -47,7 +48,7 @@ export class BookmarkFolder extends NanoReact.Component {
             this.urlIndex.set(bookmark.url, bookmarkComponent);
             this.sublist.ref.appendChild(NanoReact.render(bookmarkComponent));
         } else {
-            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, urlIndex: this.urlIndex });
+            const folderComponent = h(BookmarkFolder, { folder: bookmark, bookmarks: this.bookmarks, folders: this.folders, urlIndex: this.urlIndex });
             this.folders.set(bookmark.id, folderComponent);
             this.sublist.ref.appendChild(NanoReact.render(folderComponent));
         }
