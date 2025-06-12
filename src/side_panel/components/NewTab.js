@@ -48,17 +48,32 @@ export class NewTab extends NanoReact.Component {
         );
     }
 
-    setPendingNewTab(tab) {
+    async setPendingNewTab(tab) {
         if (tab.active) {
             console.log('Detected new tab:', tab.id);
             this.setActive(true);
+            let isNewTabNeeded = true;
             if (this.pendingNewTabId) {
                 // We already have a pending new tab, switch to it
                 console.info('We already have a pending new tab, switch to it:', this.pendingNewTabId);
-                chrome.tabs.update(this.pendingNewTabId, { active: true });
-                this._closeTab(tab.id);
-            } else {
+                let pendingNewTab = null
+                try {
+                    pendingNewTab = await chrome.tabs.get(this.pendingNewTabId);
+                } catch (error) {
+                    console.error('Failed to get pending new tab:', error);
+                    // If we can't get the pending tab, we assume it's not loading
+                }
+                if (!pendingNewTab || pendingNewTab.status === 'loading') {
+                    console.log('Pending new tab is loading, allow opening a new one.');
+                } else {
+                    chrome.tabs.update(this.pendingNewTabId, { active: true });
+                    this._closeTab(tab.id);
+                    isNewTabNeeded = false;
+                }
+            }
+            if (isNewTabNeeded) {
                 // Set this tab as the pending new tab
+                console.log('Setting pending new tab:', tab.id);
                 this.pendingNewTabId = tab.id;
                 this.tabs.set(tab.id, this);
             }
@@ -88,16 +103,19 @@ export class NewTab extends NanoReact.Component {
         this.setActive(false);
     }
 
-    setActive(isActive) {
+    async setActive(isActive) {
         if (isActive) {
             this.ref.classList.add('active');
         } else {
             this.ref.classList.remove('active');
             // If there was a pending new tab, close it
             if (this.pendingNewTabId) {
-                console.debug('Deactivated tab was pending new tab, closing it now.');
-                this._closeTab(this.pendingNewTabId);
-                this.removeTab();
+                const pendingNewTab = await chrome.tabs.get(this.pendingNewTabId);
+                if (isNewTab(pendingNewTab)) {
+                    console.debug('Deactivated tab was pending new tab, closing it now.');
+                    this._closeTab(this.pendingNewTabId);
+                    this.removeTab();
+                }
             }
         }
     }
