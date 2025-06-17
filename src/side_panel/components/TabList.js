@@ -37,7 +37,7 @@ export class TabList extends NanoReact.Component {
         console.trace(`onTabCreated`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
         if (NewTab.isNewTab(tab)) {
-            this.newTab.setPendingNewTab(tab);
+            this.newTab.cleanPendingNewTabs(tab);
             return;
         }
         // Create Tab component and DOM element
