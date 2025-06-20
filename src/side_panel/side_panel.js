@@ -12,11 +12,19 @@ function ClearTabsButton() {
     return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
 }
 
+let isAlreadyClosedOnce = false;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.trace('Received message in side panel:', message);
     if (message === 'closeSidePanel') {
-        window.close();
-        sendResponse("CLOSED")
+        if (isAlreadyClosedOnce) {
+            chrome.sidePanel.setOptions({
+                enabled: false,
+            });
+        } else {
+            window.close();
+            isAlreadyClosedOnce = true;
+        }
+        sendResponse("CLOSED");
     }
 })
 
