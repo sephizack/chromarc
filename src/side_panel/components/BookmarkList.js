@@ -20,31 +20,33 @@ export class BookmarkList extends BookmarkContainer {
         return this.childContainer;
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        // --- Retrieve opened folders from storage
+        this.openedFolders = new Set((await chrome.storage.local.get(['openedFolders'])).openedFolders || []);
+
         // --- Load existing bookmarks
-        chrome.bookmarks.getTree((bookmarkTreeNodes) => {
-            if (!bookmarkTreeNodes || !bookmarkTreeNodes[0] || !bookmarkTreeNodes[0].children) {
-                console.error('No bookmarks found or invalid structure');
-                return;
-            }
-            // Chrome's bookmarks tree: [0] is root, children: [0]=Bookmarks Bar, [1]=Other Bookmarks, [2]=Mobile Bookmarks
-            const nodes = bookmarkTreeNodes[0].children;
-            // Find the Bookmarks Bar node (usually id '1' or title 'Bookmarks Bar')
-            this.rootFolder = nodes.find(
-                node => node.id === '1' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar'
-            );
-            if (!this.rootFolder || !this.rootFolder.children) {
-                console.error('Bookmarks Bar not found');
-                return;
-            }
-            console.debug('Bookmarks Bar found:', this.rootFolder);
-            // Only render Bookmarks Bar and its subfolders/bookmarks
-            this.rootFolder.children.forEach(child => {
-                this.addBookmark(child);
-            });
+        let bookmarkTreeNodes = await chrome.bookmarks.getTree();
+        if (!bookmarkTreeNodes || !bookmarkTreeNodes[0] || !bookmarkTreeNodes[0].children) {
+            console.error('No bookmarks found or invalid structure');
+            return;
+        }
+        // Chrome's bookmarks tree: [0] is root, children: [0]=Bookmarks Bar, [1]=Other Bookmarks, [2]=Mobile Bookmarks
+        const nodes = bookmarkTreeNodes[0].children;
+        // Find the Bookmarks Bar node (usually id '1' or title 'Bookmarks Bar')
+        this.rootFolder = nodes.find(
+            node => node.id === '1' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar'
+        );
+        if (!this.rootFolder || !this.rootFolder.children) {
+            console.error('Bookmarks Bar not found');
+            return;
+        }
+        console.debug('Bookmarks Bar found:', this.rootFolder);
+        // Only render Bookmarks Bar and its subfolders/bookmarks
+        this.rootFolder.children.forEach(child => {
+            this.addBookmark(child);
         });
 
-        // Bookmarks incremental updates
+        // --- Bookmarks incremental updates
         chrome.bookmarks.onCreated.addListener((id, bookmark) => this.addBookmark(bookmark));
         chrome.bookmarks.onRemoved.addListener(this.onBookmarkRemoved.bind(this));
         chrome.bookmarks.onChanged.addListener(this.onBookmarkChanged.bind(this));

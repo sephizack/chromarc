@@ -7,9 +7,8 @@ import { NanoReact, h } from '../../nanoreact.js';
 
 
 export class BookmarkFolder extends BookmarkContainer {
-    constructor({ rootFolder, bookmarks, folders, urlIndex, onTabCreated, bookmarkTab }) {
-        super({ rootFolder, bookmarks, folders, urlIndex, onTabCreated, bookmarkTab, folderClass: BookmarkFolder });
-        this.isOpen = false;
+    constructor({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab }) {
+        super({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab, folderClass: BookmarkFolder });
     }
 
     render() {
@@ -21,21 +20,26 @@ export class BookmarkFolder extends BookmarkContainer {
                 onDragEnter: (e) => this.onDragEnter(e),
                 onDragLeave: (e) => this.onDragLeave(e),
             },
-            this.folderHeader = h('div',
-                {
-                    class: 'bookmark-folder-header',
-                    style: 'display: flex; align-items: center;',
-                    onClick: (e) => {
-                        e.stopPropagation();
-                        this.setIsOpen(!this.isOpen);
+            [
+                this.folderHeader = h('div',
+                    {
+                        class: 'bookmark-folder-header',
+                        style: 'display: flex; align-items: center;',
+                        onClick: (e) => {
+                            e.stopPropagation();
+                            this.toggleOpened();
+                        },
+                        onDragOver: (e) => this.onDragOverHeader(e),
+                        onDrop: this.onDrop.bind(this),
                     },
-                    onDragOver: (e) => this.onDragOverHeader(e),
-                    onDrop: this.onDrop.bind(this),
-                },
-                h('span', { class: 'folder-icon', innerHTML: getFolderIconSVG() }),
-                h('span', { class: 'folder-title' }, this.rootFolder.title || 'Folder'),
-            ),
-            this.childContainer = h('ul', { class: 'bookmark-folder-children', style: 'display: none;' })
+                    h('span', { class: 'folder-icon', innerHTML: getFolderIconSVG() }),
+                    h('span', { class: 'folder-title' }, this.rootFolder.title || 'Folder'),
+                ),
+                this.childContainer = h('ul', {
+                    class: 'bookmark-folder-children',
+                    style: 'display: ' + (this.isOpened() ? 'block' : 'none') + ';',
+                })
+            ]
         );
     }
 
@@ -69,8 +73,19 @@ export class BookmarkFolder extends BookmarkContainer {
         }
     }
 
-    setIsOpen(isOpen) {
-        this.isOpen = isOpen;
-        this.childContainer.ref.style.display = isOpen ? 'block' : 'none';
+    isOpened() {
+        return this.openedFolders.has(this.rootFolder.id);
+    }
+
+    toggleOpened() {
+        const opening = !this.isOpened();
+        console.debug(`Toggling folder ${this.rootFolder.title} (${this.rootFolder.id}) to ${opening ? 'open' : 'closed'}`);
+        if (opening) {
+            this.openedFolders.add(this.rootFolder.id);
+        } else {
+            this.openedFolders.delete(this.rootFolder.id);
+        }
+        this.childContainer.ref.style.display = opening ? 'block' : 'none';
+        chrome.storage.local.set({ openedFolders: Array.from(this.openedFolders) });
     }
 }

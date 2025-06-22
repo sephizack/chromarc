@@ -10,13 +10,13 @@ import { TabPlaceholder } from './TabPlaceholder.js';
  * Handles common logic for managing bookmarks and folders.
  */
 export class BookmarkContainer extends NanoReact.Component {
-    constructor({ rootFolder, bookmarks, folders, urlIndex, onTabCreated, bookmarkTab, folderClass }) {
+    constructor({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab, folderClass }) {
         super();
-        console.trace('bookmarkTab:', bookmarkTab);
         this.rootFolder = rootFolder;
         this.bookmarks = bookmarks || new Map();
         this.folders = folders || new Map();
         this.urlIndex = urlIndex || new Map();
+        this.openedFolders = openedFolders || new Set();
         this.onTabCreated = onTabCreated;
         this.bookmarkTab = bookmarkTab;
         this.folderClass = folderClass;
@@ -51,6 +51,7 @@ export class BookmarkContainer extends NanoReact.Component {
                 bookmarks: this.bookmarks,
                 folders: this.folders,
                 urlIndex: this.urlIndex,
+                openedFolders: this.openedFolders,
                 onTabCreated: this.onTabCreated,
                 bookmarkTab: this.bookmarkTab,
                 folderClass: this.folderClass,
