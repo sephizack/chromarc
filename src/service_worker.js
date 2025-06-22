@@ -20,8 +20,10 @@ chrome.commands.onCommand.addListener((command, tab) => {
 });
 
 async function actionToggleSidePanel(tab) {
-    chrome.runtime.sendMessage('toggleSidePanel');
     if (chrome.sidePanel) {
+        chrome.sidePanel.setOptions({
+            enabled: true,
+        });
         chrome.sidePanel.open({ windowId: tab.windowId });
         chrome.runtime.sendMessage('closeSidePanel',  (response) => {
             if (response == 'CLOSED') {

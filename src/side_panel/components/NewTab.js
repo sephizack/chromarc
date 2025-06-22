@@ -8,11 +8,14 @@ export class NewTab extends NanoReact.Component {
         super();
         this.tabs = tabs;
         this.onTabCreated = onTabCreated;
-        this.pendingNewTabId = null;
     }
 
     static isNewTab(tab) {
         return tab.url === 'chrome://newtab/' || tab.pendingUrl === 'chrome://newtab/';
+    }
+
+    static isNewTabLoading(tab) {
+        return tab.status === 'loading' && tab.pendingUrl && tab.pendingUrl != 'chrome://newtab/';
     }
 
     render() {
@@ -48,42 +51,38 @@ export class NewTab extends NanoReact.Component {
         );
     }
 
-    setPendingNewTab(tab) {
-        if (tab.active) {
-            console.log('Detected new tab:', tab.id);
-            this.setActive(true);
-            if (this.pendingNewTabId) {
-                // We already have a pending new tab, switch to it
-                console.info('We already have a pending new tab, switch to it:', this.pendingNewTabId);
-                chrome.tabs.update(this.pendingNewTabId, { active: true });
-                this._closeTab(tab.id);
-            } else {
-                // Set this tab as the pending new tab
-                this.pendingNewTabId = tab.id;
-                this.tabs.set(tab.id, this);
-            }
-        } else {
-            console.log('Detected new tab but not active, ignoring:', tab.id);
-        }
+    async cleanPendingNewTabs(curNewTab) {
+        this.setActive(true);
+        this.tabs.set(curNewTab.id, this);
+        chrome.tabs.query({}, tabs => {
+            tabs.map(async t => {
+                if (t.id === curNewTab.id || !NewTab.isNewTab(t)) {
+                    return; // Skip the current new tab or non-new tabs
+                }
+                try {
+                    let tabDetails = await chrome.tabs.get(t.id);
+                    if (NewTab.isNewTabLoading(tabDetails)) {
+                        return; // We don't close tabs that are still loading
+                    }
+                } catch (error) {
+                    // If we can't get the pending tab, we close by default
+                    console.error('Failed to get pending new tab:', error);
+                }
+                this._closeTab(t.id);
+            });
+        });
     }
 
     onTabUpdated(changeInfo, tab) {
-        if (tab.id === this.pendingNewTabId) {
-            if (NewTab.isNewTab(tab)) {
-                // Nothing to do, still pending
-                return;
-            }
-            console.info('Extracting pending new tab:', tab);
-            this.pendingNewTabId = null;
-            this.onTabCreated(tab);
+        if (NewTab.isNewTab(tab) && tab.active) {
+            this.setActive(true);
+        } else {
             this.setActive(false);
+            this.onTabCreated(tab);
         }
     }
 
     onTabRemoved() {
-        // Nothing to do, we don't remove the New Tab component
-        console.debug('Cleaning pending new tab');
-        this.pendingNewTabId = null;
         this.setActive(false);
     }
 
@@ -92,12 +91,6 @@ export class NewTab extends NanoReact.Component {
             this.ref.classList.add('active');
         } else {
             this.ref.classList.remove('active');
-            // If there was a pending new tab, close it
-            if (this.pendingNewTabId) {
-                console.debug('Deactivated tab was pending new tab, closing it now.');
-                this._closeTab(this.pendingNewTabId);
-                this.onTabRemoved();
-            }
         }
     }
 
