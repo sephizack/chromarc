@@ -1,18 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extension Settings</title>
     <link rel="stylesheet" href="options.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
 </head>
+
 <body>
-    <div class="container">
-        <img style="max-width: 400px;" alt="Chromarc's banner" src="../assets/banner.png">
-        <div id="settings-container" aria-live="polite"></div>
+    <div class="container-fluid">
+        <img style="max-width: 250px; margin-left: 1em;" alt="Chromarc's banner" src="../assets/banner.png">
+        <table id="settings-container">
+            <tbody>
+                <tr>
+                    <td>Import from Arc</td>
+                    <td>
+                        <div class="col-auto">
+                            <label for="arcSidebarImportFile" class="form-label">Import Sidebar from Arc</label>
+                        </div>
+                        <div class="row align-items-center g-2 flex-nowrap">
+                            <div class="col-auto">
+                                <input type="file" id="arcSidebarImportFile" accept=".json" class="form-control">
+                            </div>
+                            <div class="col-auto">
+                                <select id="arcSidebarSpace" class="form-select" disabled
+                                    style="min-width: 200px;"></select>
+                            </div>
+                            <div class="col-auto">
+                                <button id="importArcSidebarBtn" type="button" class="btn btn-primary">Import</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tab Behaviour</td>
+                    <td>
+                        <!-- Tab expiration -->
+                        <div class="row align-items-center g-2 flex-nowrap">
+                            <div class="col-auto">
+                                <input type="checkbox" id="enableTabExpiration" checked="true" class="form-check-input">
+                            </div>
+                            <div class="col-auto">
+                                <label for="enableTabExpiration" class="form-check-label mb-0">
+                                    Enable Tab Expiration
+                                </label>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <input type="number" id="tabExpirationValue" min="1" class="form-control" value="6"
+                                        style="width: 4em;">
+                                    <select id="tabExpirationUnit" class="form-select" style="width: 8em;">
+                                        <option value="minute">Minutes</option>
+                                        <option value="hour">Hours</option>
+                                        <option value="day">Days</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <script src="../crel.min.js"></script>
+    <script src="bootstrap.min.js"></script>
     <script type="module" src="../settings.js"></script>
     <script type="module" src="options.js"></script>
 </body>
+
 </html>

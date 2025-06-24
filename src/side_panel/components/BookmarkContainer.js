@@ -28,12 +28,12 @@ export class BookmarkContainer extends NanoReact.Component {
      * @param {object} bookmark - The bookmark or folder node.
      */
     addBookmark(bookmark) {
+        if (bookmark.parentId !== this.rootFolder.id) {
+            // Bookmark belongs to a different folder, skip adding here
+            this.folders.get(bookmark.parentId).addBookmark(bookmark);
+            return;
+        }
         if (bookmark.url) {
-            if (bookmark.parentId !== this.rootFolder.id) {
-                // Bookmark belongs to a different folder, skip adding here
-                this.folders.get(bookmark.parentId).addBookmark(bookmark);
-                return;
-            }
             const bookmarkComponent = h(Bookmark, {
                 bookmark,
                 onTabCreated: this.onTabCreated,
