@@ -51,7 +51,7 @@ export class NewTab extends NanoReact.Component {
         );
     }
 
-    async cleanPendingNewTabs(curNewTab) {
+    async cleanPendingAndSet(curNewTab) {
         this.setActive(true);
         this.tabs.set(curNewTab.id, this);
         chrome.tabs.query({}, tabs => {

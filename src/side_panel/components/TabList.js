@@ -28,7 +28,7 @@ export class TabList extends NanoReact.Component {
         console.trace(`onTabCreated`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
         if (NewTab.isNewTab(tab)) {
-            this.newTab.cleanPendingNewTabs(tab);
+            this.newTab.cleanPendingAndSet(tab);
             return;
         }
         // Create Tab component and DOM element
@@ -38,12 +38,12 @@ export class TabList extends NanoReact.Component {
             bookmarkTab: this.bookmarkTab
         });
         const tabElement = NanoReact.render(tabComponent);
-        if (this.newTab) {
-            // Insert at the top of the list (newest first)
-            this.ref.insertBefore(tabElement, this.newTab.ref.nextSibling);
-        } else {
-            this.ref.appendChild(tabElement);
-        }
+
+        // We follow Chrome's behavior on the tab opening (just reversing because we have the newest first), so:
+        //  - New tab are at the top
+        //  - "Child" tabs are on-top of their parent
+        this.ref.insertBefore(tabElement, this.ref.children[this.tabs.size - tab.index]);
+
         this.tabs.set(tab.id, tabComponent);
     }
 

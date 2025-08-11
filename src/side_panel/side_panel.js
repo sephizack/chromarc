@@ -86,7 +86,7 @@ export class SidePanel extends NanoReact.Component {
         // Load existing tabs
         chrome.tabs.query({}, (tabs) => {
             // Reverse addition to preserve order (because onTabCreated adds at the top)
-            tabs.reverse().forEach(tab => {
+            tabs.forEach(tab => {
                 this.onTabCreated(tab);
             });
         });
