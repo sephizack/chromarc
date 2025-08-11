@@ -1,10 +1,10 @@
 'use strict';
 
 import { FolderIcon } from '../../icon_utils.js';
-import { BookmarkContainer } from './BookmarkContainer.js';
-import { TabPlaceholder } from './TabPlaceholder.js';
+import { BookmarkContainer } from './bookmark_container.js';
+import { TabPlaceholder } from './tab_placeholder.js';
 import { NanoReact, h } from '../../nanoreact.js';
-import { ContextMenu } from '../ContextMenu.js';
+import { ContextMenu } from '../context_menu.js';
 
 
 export class BookmarkFolder extends BookmarkContainer {

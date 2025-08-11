@@ -1,10 +1,10 @@
 'use strict';
 
-import { TabList } from './components/TabList.js';
-import { BookmarkList } from './components/BookmarkList.js';
+import { TabList } from './components/tab_list.js';
+import { BookmarkList } from './components/bookmark_list.js';
 import { NanoReact, h } from "../../nanoreact.js";
-import { ContextMenu } from './ContextMenu.js';
-import { BookmarkUtils } from './BookmarkUtils.js';
+import { ContextMenu } from './context_menu.js';
+import { BookmarkUtils } from './bookmark_utils.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {

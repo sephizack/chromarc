@@ -3,9 +3,9 @@
 
 import { DeleteIcon, CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
 import { NanoReact, h } from '../../nanoreact.js';
-import { ContextMenu } from '../ContextMenu.js';
-import { TabPlaceholder } from './TabPlaceholder.js';
-import { BookmarkUtils } from '../BookmarkUtils.js';
+import { ContextMenu } from '../context_menu.js';
+import { TabPlaceholder } from './tab_placeholder.js';
+import { BookmarkUtils } from '../bookmark_utils.js';
 
 
 export class TabFavicon extends NanoReact.Component {

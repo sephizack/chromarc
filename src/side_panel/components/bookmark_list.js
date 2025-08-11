@@ -1,8 +1,8 @@
 'use strict';
 
-import { BookmarkUtils } from '../BookmarkUtils.js';
-import { BookmarkFolder } from './BookmarkFolder.js';
-import { BookmarkContainer } from './BookmarkContainer.js';
+import { BookmarkUtils } from '../bookmark_utils.js';
+import { BookmarkFolder } from './bookmark_folder.js';
+import { BookmarkContainer } from './bookmark_container.js';
 import { h } from '../../nanoreact.js';
 
 

@@ -1,9 +1,9 @@
 'use strict';
 
 import { NanoReact, h } from '../../nanoreact.js';
-import { NewTab } from './NewTab.js';
-import { Tab } from './Tab.js';
-import { TabPlaceholder } from './TabPlaceholder.js';
+import { NewTab } from './new_tab.js';
+import { Tab } from './tab.js';
+import { TabPlaceholder } from './tab_placeholder.js';
 
 export class TabList extends NanoReact.Component {
     constructor({ tabs, bookmarkTab }) {

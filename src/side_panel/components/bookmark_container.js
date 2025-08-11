@@ -1,8 +1,8 @@
 'use strict';
 
-import { Bookmark } from './Bookmark.js';
+import { Bookmark } from './bookmark.js';
 import { NanoReact, h } from '../../nanoreact.js';
-import { TabPlaceholder } from './TabPlaceholder.js';
+import { TabPlaceholder } from './tab_placeholder.js';
 
 
 /**

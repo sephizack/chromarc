@@ -1,9 +1,9 @@
 'use strict';
 
 import { DeleteIcon, CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
-import { Tab, TabFavicon, CloseButton } from './Tab.js';
+import { Tab, TabFavicon, CloseButton } from './tab.js';
 import { h, NanoReact } from '../../nanoreact.js';
-import { ContextMenu } from '../ContextMenu.js';
+import { ContextMenu } from '../context_menu.js';
 
 
 export class Bookmark extends Tab {
