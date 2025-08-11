@@ -1,9 +1,11 @@
 
 'use strict';
 
-import { getFaviconFromCache } from '../../icon_utils.js';
+import { DeleteIcon, CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
 import { NanoReact, h } from '../../nanoreact.js';
+import { ContextMenu } from '../ContextMenu.js';
 import { TabPlaceholder } from './TabPlaceholder.js';
+import { BookmarkUtils } from '../BookmarkUtils.js';
 
 
 export class TabFavicon extends NanoReact.Component {
@@ -38,14 +40,46 @@ export class TabFavicon extends NanoReact.Component {
     }
 }
 
-export function CloseButton({ onClick }) {
-    return h('button', {
-        class: 'tab-close',
-        onClick: onClick
-    }, '\u00D7');
+export class CloseButton extends NanoReact.Component {
+    constructor({ onClick, icon }) {
+        super();
+        this.onClick = onClick;
+        this.icon = icon;
+    }
+
+    setIcon(icon) {
+        this.icon = icon;
+        if (this.innerDiv) {
+            this.innerDiv.ref.innerHTML = icon;
+        }
+    }
+
+    setText(text) {
+        this.icon = text;
+        if (this.innerDiv) {
+            this.innerDiv.ref.textContent = text;
+        }
+    }
+
+    setHidden(hidden) {
+        if (this.innerDiv) {
+            this.innerDiv.ref.style.display = hidden ? 'none' : 'block';
+        }
+    }
+
+    render() {
+        return h('button', {
+            class: 'tab-close',
+            onClick: this.onClick,
+            style: 'width: 20px; height: 20px;',
+        }, [
+            this.innerDiv = h('div', {
+                style: { width: '14px', height: '14px', margin: '-5px 0 0 -3px' },
+                innerHTML: this.icon
+            })
+        ]);
+    }
 }
-
-
 
 export class Tab extends NanoReact.Component {
     constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd, bookmarkTab }) {
@@ -72,40 +106,65 @@ export class Tab extends NanoReact.Component {
                     chrome.tabs.update(this.tab.id, { active: true });
                 },
                 onMouseLeave: () => {
-                    this.closeButton.ref.style.display = 'none';
+                    this.closeButton.setHidden(true);
                 },
                 onDragStart: (e) => this.onDragStart(e),
                 onDragEnd: (e) => this.onDragEnd(e),
                 onDragOver: (e) => this.onDragOver(e),
                 onDrop: this.onDrop,
                 onMouseEnter: () => {
-                    this.closeButton.ref.style.display = '';
+                    this.closeButton.setHidden(false);
                 },
-            },
-            this.favicon = h(TabFavicon, { tab: this.tab }),
-            this.title = h('span', { class: 'tab-title' }, this.tab.title || this.tab.url || 'Loading...'),
-            this.closeButton = h(CloseButton, {
-                onClick: (e) => {
-                    e.stopPropagation();
-                    chrome.tabs.remove(this.tab.id);
+                onContextMenu: async (e) => {
+                    ContextMenu.addItem('Close Tab', () => {
+                        chrome.tabs.remove(this.tab.id);
+                    });
+                    ContextMenu.addItem('Duplicate Tab', () => {
+                        chrome.tabs.duplicate(this.tab.id);
+                    });
+                    ContextMenu.addItem('Bookmark Tab', () => {
+                        this.bookmarkTab(this.tab, '1');
+                    });
+                    const bookmarkToSubMenu = ContextMenu.addSubMenu('Bookmark Tab to...');
+                    const recursiveAddFolderSubMenu = (node, parentId) => {
+                        if (node.children) {
+                            const isLeaf = !node.children.some(child => child.children);
+                            if (isLeaf) {
+                                ContextMenu.addItem(node.title, () => {
+                                    this.bookmarkTab(this.tab, node.id);
+                                }, parentId);
+                            } else {
+                                parentId = ContextMenu.addSubMenu(node.title, parentId);
+                                ContextMenu.addItem('.', () => {
+                                    this.bookmarkTab(this.tab, node.id);
+                                }, parentId);
+                                node.children.forEach(child => {
+                                    recursiveAddFolderSubMenu(child, parentId);
+                                });
+                            }
+                        }
+                    }
+                    BookmarkUtils.getBar().children.forEach(node => {
+                        recursiveAddFolderSubMenu(node, bookmarkToSubMenu);
+                    });
                 }
-            })
+            },
+            [
+                this.favicon = h(TabFavicon, { tab: this.tab }),
+                this.title = h('span', { class: 'tab-title' }, this.tab.title || this.tab.url || 'Loading...'),
+                this.closeButton = h(CloseButton, {
+                    onClick: (e) => {
+                        e.stopPropagation();
+                        chrome.tabs.remove(this.tab.id);
+                    },
+                    icon: CloseIcon
+                }),
+            ],
         );
     }
 
     componentDidMount() {
-        this.closeButton.ref.style.display = 'none';
-    }
-
-    getContextMenuItems() {
-        return [
-            { id: 'tab-close', title: 'Close Tab', onclick: () => chrome.tabs.remove(this.tab.id) },
-            { id: 'tab-duplicate', title: 'Duplicate Tab', onclick: () => chrome.tabs.duplicate(this.tab.id) },
-            { id: 'tab-bookmark', title: 'Bookmark Tab', onclick: () => {
-                // Attach to the Bookmark Bar
-                this.bookmarkTab(this.tab, '1');
-            }},
-        ]
+        this.closeButton.setHidden(true);
     }
 
     onDragStart(e) {

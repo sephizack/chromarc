@@ -1,9 +1,10 @@
 'use strict';
 
-import { getFolderIconSVG } from '../../icon_utils.js';
+import { FolderIcon } from '../../icon_utils.js';
 import { BookmarkContainer } from './BookmarkContainer.js';
 import { TabPlaceholder } from './TabPlaceholder.js';
 import { NanoReact, h } from '../../nanoreact.js';
+import { ContextMenu } from '../ContextMenu.js';
 
 
 export class BookmarkFolder extends BookmarkContainer {
@@ -29,10 +30,17 @@ export class BookmarkFolder extends BookmarkContainer {
                             e.stopPropagation();
                             this.toggleOpened();
                         },
+                        onContextMenu: (e) => {
+                            ContextMenu.addItem('Delete folder', () => {
+                                // Make a popup to confirm folder removal using chrome.notifications
+                                console.debug(`Requesting confirmation to remove folder "${this.rootFolder.title}"`);
+                                confirm(`Are you sure you want to remove the folder "${this.rootFolder.title}"?\nThis will delete all ${this.rootFolder.children.length} bookmarks inside.`)
+                            });
+                        },
                         onDragOver: (e) => this.onDragOverHeader(e),
                         onDrop: this.onDrop.bind(this),
                     },
-                    h('span', { class: 'folder-icon', innerHTML: getFolderIconSVG() }),
+                    h('span', { class: 'folder-icon', innerHTML: FolderIcon }),
                     h('span', { class: 'folder-title' }, this.rootFolder.title || 'Folder'),
                 ),
                 this.childContainer = h('ul', {
@@ -88,4 +96,5 @@ export class BookmarkFolder extends BookmarkContainer {
         this.childContainer.ref.style.display = opening ? 'block' : 'none';
         chrome.storage.local.set({ openedFolders: Array.from(this.openedFolders) });
     }
+
 }
