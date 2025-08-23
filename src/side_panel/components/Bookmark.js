@@ -1,6 +1,6 @@
 'use strict';
 
-import { DeleteIcon, CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
+import { DeleteIcon, CloseIcon } from '../../icon_utils.js';
 import { Tab, TabFavicon, CloseButton } from './tab.js';
 import { h, NanoReact } from '../../nanoreact.js';
 import { ContextMenu } from '../context_menu.js';
@@ -14,7 +14,7 @@ export class Bookmark extends Tab {
         this.onTabCreated = onTabCreated;
     }
 
-    render() {
+    async render() {
         return h(
             'li',
             {
@@ -40,7 +40,7 @@ export class Bookmark extends Tab {
                 onDragEnd: (e) => this.onDragEnd(e),
                 onDragOver: (e) => this.onDragOver(e),
                 onDrop: this.onDrop,
-                onContextMenu: (e) => {
+                onContextMenu: (_e) => {
                     ContextMenu.addItem('Remove Bookmark', () => {
                         chrome.bookmarks.remove(this.bookmark.id);
                     });
@@ -60,10 +60,10 @@ export class Bookmark extends Tab {
                             this.textContainer.ref.classList.remove('hint-visible');
                             this.leftContainer.ref.classList.remove('hint-bg');
                         },
-                        onClick: (event) => {
+                        onClick: (_event) => {
                             if (this.isUrlDiff) {
                                 // Update the tab to the original bookmarked URL
-                                chrome.tabs.update(this.tab.id, { url: this.bookmark.url }, (tab) => {
+                                chrome.tabs.update(this.tab.id, { url: this.bookmark.url }, (_tab) => {
                                     if (chrome.runtime.lastError) {
                                         console.error('Failed to restore tab URL:', chrome.runtime.lastError.message);
                                     }
@@ -85,12 +85,12 @@ export class Bookmark extends Tab {
                     h('span', { class: 'bookmark-url-hint' }, 'Back to the bookmarked URL')
                 ),
                 this.closeButton = h(CloseButton, {
-                    onClick: (e) => {
+                    onClick: async (e) => {
                         e.stopPropagation();
 
                         if (this.closeButton.icon === DeleteIcon) {
                             this.closeButton.ref.remove();
-                            this.ref.appendChild(NanoReact.render(h('button', {
+                            this.ref.appendChild(await NanoReact.render(h('button', {
                                 type: 'button',
                                 style: {
                                     "background": "transparent",
@@ -120,7 +120,7 @@ export class Bookmark extends Tab {
         );
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.closeButton.setHidden(true);
     }
 

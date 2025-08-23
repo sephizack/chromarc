@@ -115,7 +115,7 @@ export class Tab extends NanoReact.Component {
                 onMouseEnter: () => {
                     this.closeButton.setHidden(false);
                 },
-                onContextMenu: async (e) => {
+                onContextMenu: async (_e) => {
                     ContextMenu.addItem('Close Tab', () => {
                         chrome.tabs.remove(this.tab.id);
                     });
@@ -163,7 +163,7 @@ export class Tab extends NanoReact.Component {
         );
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.closeButton.setHidden(true);
     }
 
@@ -187,7 +187,7 @@ export class Tab extends NanoReact.Component {
         TabPlaceholder.setOnDrop(this.onDrop);
     }
 
-    onDragEnd(e) {
+    onDragEnd(_e) {
         console.log('Drag end event triggered for tab:', this.tab);
         this.ref.style.display = '';
         TabPlaceholder.remove();

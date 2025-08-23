@@ -27,10 +27,10 @@ export class BookmarkContainer extends NanoReact.Component {
      * Add a bookmark or folder to this container.
      * @param {object} bookmark - The bookmark or folder node.
      */
-    addBookmark(bookmark) {
+    async addBookmark(bookmark) {
         if (bookmark.parentId !== this.rootFolder.id) {
             // Bookmark belongs to a different folder, skip adding here
-            this.folders.get(bookmark.parentId).addBookmark(bookmark);
+            await this.folders.get(bookmark.parentId).addBookmark(bookmark);
             return;
         }
         if (bookmark.url) {
@@ -41,7 +41,7 @@ export class BookmarkContainer extends NanoReact.Component {
             });
             this.bookmarks.set(bookmark.id, bookmarkComponent);
             this.urlIndex.set(bookmark.url, bookmarkComponent);
-            this.childContainer.ref.appendChild(NanoReact.render(bookmarkComponent));
+            this.childContainer.ref.appendChild(await NanoReact.render(bookmarkComponent));
         } else {
             if (!this.folderClass) {
                 throw new Error('folderClass not set on BookmarkContainer');
@@ -57,7 +57,7 @@ export class BookmarkContainer extends NanoReact.Component {
                 folderClass: this.folderClass,
             });
             this.folders.set(bookmark.id, folderComponent);
-            this.childContainer.ref.appendChild(NanoReact.render(folderComponent));
+            this.childContainer.ref.appendChild(await NanoReact.render(folderComponent));
         }
     }
 
@@ -65,28 +65,30 @@ export class BookmarkContainer extends NanoReact.Component {
         e.preventDefault();
         const draggedObject = TabPlaceholder.getDraggedObject();
         console.log(`Drop event triggered in ${this.type}:`, draggedObject);
-        switch(draggedObject.type) {
+        switch (draggedObject.type) {
             case 'Bookmark':
-                const previousIndex = Array.from(this.childContainer.ref.children).indexOf(draggedObject.ref);
-                TabPlaceholder.insertDraggedObject();
-                // Find the new position of the dragged tab in the list and move it in Chrome
-                // *DO NOT change the order*, otherwise you risk race conditions
-                let placeholderIndex = Array.from(this.childContainer.ref.children).map(child => child.id).indexOf(draggedObject.ref.id);
-                if (previousIndex >= 0 && previousIndex < placeholderIndex) {
-                    // Chrome is computing the new index as if the tab was already removed,
-                    // so we need to adjust the index if the previous index was before the new index
-                    // See: https://github.com/chromium/chromium/blob/6fa8ee07f81ecb74d939576e60f380fda0578a07/components/bookmarks/browser/bookmark_model.cc#L532
-                    placeholderIndex += 1;
-                }
-                console.log('Previous index:', previousIndex);
-                console.log('Placeholder index:', placeholderIndex);
-                chrome.bookmarks.move(draggedObject.bookmark.id, { parentId: this.rootFolder.id, index: placeholderIndex }, (res) => {
-                    console.log('Bookmark moved:', res);
-                    if (chrome.runtime.lastError) {
-                        console.error('Error moving bookmark:', chrome.runtime.lastError);
+                {
+                    const previousIndex = Array.from(this.childContainer.ref.children).indexOf(draggedObject.ref);
+                    TabPlaceholder.insertDraggedObject();
+                    // Find the new position of the dragged tab in the list and move it in Chrome
+                    // *DO NOT change the order*, otherwise you risk race conditions
+                    let placeholderIndex = Array.from(this.childContainer.ref.children).map(child => child.id).indexOf(draggedObject.ref.id);
+                    if (previousIndex >= 0 && previousIndex < placeholderIndex) {
+                        // Chrome is computing the new index as if the tab was already removed,
+                        // so we need to adjust the index if the previous index was before the new index
+                        // See: https://github.com/chromium/chromium/blob/6fa8ee07f81ecb74d939576e60f380fda0578a07/components/bookmarks/browser/bookmark_model.cc#L532
+                        placeholderIndex += 1;
                     }
-                });
-                break;
+                    console.log('Previous index:', previousIndex);
+                    console.log('Placeholder index:', placeholderIndex);
+                    chrome.bookmarks.move(draggedObject.bookmark.id, { parentId: this.rootFolder.id, index: placeholderIndex }, (res) => {
+                        console.log('Bookmark moved:', res);
+                        if (chrome.runtime.lastError) {
+                            console.error('Error moving bookmark:', chrome.runtime.lastError);
+                        }
+                    });
+                    break;
+                }
             case 'Tab':
                 this.bookmarkTab(draggedObject.tab, this.rootFolder.id);
                 break;

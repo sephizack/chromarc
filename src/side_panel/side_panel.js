@@ -2,18 +2,36 @@
 
 import { TabList } from './components/tab_list.js';
 import { BookmarkList } from './components/bookmark_list.js';
-import { NanoReact, h } from "../../nanoreact.js";
+import { NanoReact, h } from "../nanoreact.js";
 import { ContextMenu } from './context_menu.js';
 import { BookmarkUtils } from './bookmark_utils.js';
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementsByTagName("body")[0].appendChild(NanoReact.render(h(SidePanel)));
+document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementsByTagName("body")[0].appendChild(await NanoReact.render(h(SidePanel)));
 });
 
 function ClearTabsButton() {
     return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
 }
+
+
+// export class ClearTabsButton extends NanoReact.Component {
+//     constructor({ onClick }) {
+//         super();
+//         this.onClick = onClick;
+//     }
+
+//     async render() {
+//         return h('span',
+//             {
+//                 id: 'clear-tabs',
+//                 title: 'Close all open tabs',
+//                 onClick: this.onClick
+//             },
+//             ['Clear']);
+//     }
+// }
 
 let isAlreadyClosedOnce = false;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -39,7 +57,7 @@ export class SidePanel extends NanoReact.Component {
         this.menuItems = {};
     }
 
-    render() {
+    async render() {
         // Get active tab
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs.length > 0) {
@@ -60,7 +78,7 @@ export class SidePanel extends NanoReact.Component {
         // Context menu handling
         ContextMenu.init();
 
-        BookmarkUtils.init();
+        await BookmarkUtils.init();
 
         return h('div', { id: 'side_panel' }, [
             this.bookmarkList = h(BookmarkList,
@@ -72,6 +90,13 @@ export class SidePanel extends NanoReact.Component {
             h('div', { class: 'section-divider-container' }, [
                 h('hr', { class: 'section-divider' }, []),
                 h(ClearTabsButton),
+                // this.clearTabsButton = h(ClearTabsButton, {
+                //     onClick: async () => {
+                //         let ids = Array.from(this.tabs.keys()).filter(tabId => tabId !== 'new-tab');
+                //         console.log('Closing tabs:', ids);
+                //         await chrome.tabs.remove(ids);
+                //     }
+                // }),
             ]),
             this.tabList = h(TabList,
                 {
@@ -82,14 +107,13 @@ export class SidePanel extends NanoReact.Component {
         ]);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         // Load existing tabs
-        chrome.tabs.query({}, (tabs) => {
-            // Reverse addition to preserve order (because onTabCreated adds at the top)
-            tabs.forEach(tab => {
-                this.onTabCreated(tab);
-            });
-        });
+        const tabs = await chrome.tabs.query({});
+        // Reverse addition to preserve order (because onTabCreated adds at the top)
+        for (const tab of tabs) {
+            await this.onTabCreated(tab);
+        }
     }
 
     setActiveTab(tabId) {
@@ -111,13 +135,13 @@ export class SidePanel extends NanoReact.Component {
         this.tabs.get(tabId).setActive(true);
     }
 
-    onTabCreated(tab) {
+    async onTabCreated(tab) {
         console.trace(`onTabCreated`, tab);
         if (this.bookmarkList.isTabBookmarked(tab)) {
             console.info('Tab is bookmarked, adding to bookmarks:', tab);
             this.bookmarkList.addBookmarkedTab(tab);
         } else {
-            this.tabList.onTabCreated(tab);
+            await this.tabList.onTabCreated(tab);
         }
         // If the tab is active and was added (in case of sequential new tab we only had 1), set it as the active tab
         if (tab.active && this.tabs.has(tab.id)) {

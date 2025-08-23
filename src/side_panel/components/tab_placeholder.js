@@ -29,7 +29,7 @@ export class TabPlaceholder extends NanoReact.Component {
         );
     }
 
-    static createFor(draggedObject, onDrop) {
+    static async createFor(draggedObject, onDrop) {
         if (TabPlaceholder.instance) {
             TabPlaceholder.remove();
         }
@@ -37,7 +37,7 @@ export class TabPlaceholder extends NanoReact.Component {
             draggedObject: draggedObject,
             onDrop: onDrop
         });
-        draggedObject.ref.parentNode.insertBefore(NanoReact.render(TabPlaceholder.instance), draggedObject.ref.nextSibling);
+        draggedObject.ref.parentNode.insertBefore(await NanoReact.render(TabPlaceholder.instance), draggedObject.ref.nextSibling);
         // Hide the dragged tab visually
         setTimeout(() => {
             draggedObject.ref.style.display = 'none';

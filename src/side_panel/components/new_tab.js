@@ -29,7 +29,7 @@ export class NewTab extends NanoReact.Component {
                 onClick: (e) => {
                     console.log('New tab clicked');
                     e.preventDefault();
-                    chrome.tabs.create({}, (tab) => {
+                    chrome.tabs.create({}, (_tab) => {
                         if (chrome.runtime.lastError) {
                             console.error('Failed to create new tab:', chrome.runtime.lastError.message);
                         }

@@ -3,7 +3,7 @@
 import { FolderIcon } from '../../icon_utils.js';
 import { BookmarkContainer } from './bookmark_container.js';
 import { TabPlaceholder } from './tab_placeholder.js';
-import { NanoReact, h } from '../../nanoreact.js';
+import { h } from '../../nanoreact.js';
 import { ContextMenu } from '../context_menu.js';
 
 
@@ -30,7 +30,7 @@ export class BookmarkFolder extends BookmarkContainer {
                             e.stopPropagation();
                             this.toggleOpened();
                         },
-                        onContextMenu: (e) => {
+                        onContextMenu: (_e) => {
                             ContextMenu.addItem('Delete folder', () => {
                                 // Make a popup to confirm folder removal using chrome.notifications
                                 console.debug(`Requesting confirmation to remove folder "${this.rootFolder.title}"`);
@@ -73,7 +73,7 @@ export class BookmarkFolder extends BookmarkContainer {
         TabPlaceholder.setOnDrop(this.onDrop.bind(this));
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         if (this.rootFolder.children) {
             this.rootFolder.children.forEach(child => {
                 this.addBookmark(child);

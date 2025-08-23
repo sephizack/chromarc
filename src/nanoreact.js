@@ -13,7 +13,7 @@ NanoReact.Element = class {
      * Renders the element and its children.
      * @returns {HTMLElement}
      */
-    render() {
+    async render() {
         this.ref = document.createElement(this.type);
         for (const [key, value] of Object.entries(this.props)) {
             if (key === 'ref') {
@@ -48,19 +48,19 @@ NanoReact.Element = class {
                 this.ref.setAttribute(key, value);
             }
         }
-        this.children.forEach(child => {
+        for (const child of this.children) {
             let element;
             if (typeof child === 'string') {
                 element = document.createTextNode(child);
             } else if (child instanceof NanoReact.Component || child instanceof NanoReact.Element) {
-                element = NanoReact.render(child);
+                element = await NanoReact.render(child);
             } else {
                 throw new Error(`Invalid child type '${typeof child}'. Only strings or NanoReact.Element instances are allowed.`);
             }
             if (element) {
                 this.ref.appendChild(element);
             }
-        });
+        }
         return this.ref;
     }
 }
@@ -75,36 +75,36 @@ NanoReact.Component = class extends NanoReact.Element {
      * Renders the component.
      * @returns {NanoReact.Element}
      */
-    render() {
+    async render() {
         throw new Error('Render method must be implemented in subclass');
     }
-    componentDidMount() {}
+    async componentDidMount() {}
 };
 
 /**
  * Renders an Element or a Component
  * @param {NanoReact.Element | NanoReact.Component} element - The element to render.
  */
-NanoReact.render = function (element) {
+NanoReact.render = async function (element) {
     if (element instanceof NanoReact.Component) {
         const comp = element;
-        element = comp.render();
+        element = await comp.render();
         if (!element) {
             throw new Error(`Component '${comp.type}' rendered '${element}'. Ensure the render method returns a valid NanoReact.Element.`);
         }
         if (!(element instanceof NanoReact.Element)) {
             throw new Error(`Component '${comp.type}' must return a NanoReact.Element. Use createElement to create elements.`);
         }
-        const ref = element.render();
+        const ref = await element.render();
         comp.ref = ref;
         element.ref = ref;
-        comp.componentDidMount();
+        await comp.componentDidMount();
         return ref;
     }
     if (!(element instanceof NanoReact.Element)) {
         throw new Error('Invalid element type. Use createElement to create elements.');
     }
-    const ref = element.render();
+    const ref = await element.render();
     element.ref = ref;
     return ref;
 };

@@ -24,7 +24,7 @@ export class TabList extends NanoReact.Component {
         ]);
     }
 
-    onTabCreated(tab) {
+    async onTabCreated(tab) {
         console.trace(`onTabCreated`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
         if (NewTab.isNewTab(tab)) {
@@ -37,7 +37,7 @@ export class TabList extends NanoReact.Component {
             onDrop: this.onDrop.bind(this),
             bookmarkTab: this.bookmarkTab
         });
-        const tabElement = NanoReact.render(tabComponent);
+        const tabElement = await NanoReact.render(tabComponent);
 
         // We follow Chrome's behavior on the tab opening (just reversing because we have the newest first), so:
         //  - New tab are at the top
@@ -53,14 +53,17 @@ export class TabList extends NanoReact.Component {
         console.log('Drop event triggered in tab list:', draggedObject);
         switch (draggedObject.type) {
             case 'Tab':
-                TabPlaceholder.insertDraggedObject();
-                // Find the new position of the dragged tab in the list and move it in Chrome
-                // *DO NOT change the order*, otherwise you risk race conditions
-                const tabIndex = Array.from(this.ref.children).indexOf(draggedObject.ref) - 1; // - 1 because the New Tab button
-                chrome.tabs.move(draggedObject.tab.id, { index: tabIndex });
-                break;
+                {
+                    TabPlaceholder.insertDraggedObject();
+                    // Find the new position of the dragged tab in the list and move it in Chrome
+                    // *DO NOT change the order*, otherwise you risk race conditions
+                    const tabIndex = Array.from(this.ref.children).indexOf(draggedObject.ref) - 1; // - 1 because the New Tab button
+                    chrome.tabs.move(draggedObject.tab.id, { index: tabIndex });
+                    break;
+                }
             case 'Bookmark':
-                chrome.bookmarks.remove(draggedObject.bookmark.id)
+                chrome.bookmarks.remove(draggedObject.bookmark.id);
+                break;
             default:
                 console.error('Unknown drop type:', draggedObject);
                 break;

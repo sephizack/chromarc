@@ -22,7 +22,7 @@ export class BookmarkList extends BookmarkContainer {
 
     async componentDidMount() {
         // --- Retrieve opened folders from storage
-        this.openedFolders = new Set((await chrome.storage.local.get(['openedFolders'])).openedFolders || []);
+        this.openedFolders = new Set((await chrome.storage.local.get(['openedFolders']))?.openedFolders || []);
 
         // --- Load existing bookmarks
         this.rootFolder = BookmarkUtils.getBar();

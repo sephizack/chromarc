@@ -8,10 +8,11 @@ export class BookmarkUtils {
             this.bookmarkTree = await chrome.bookmarks.getTree();
         };
         await refreshBookmarkTree();
-        chrome.bookmarks.onCreated.addListener((id, bookmark) => refreshBookmarkTree());
-        chrome.bookmarks.onRemoved.addListener((id) => refreshBookmarkTree());
-        chrome.bookmarks.onChanged.addListener((id, changeInfo) => refreshBookmarkTree());
-        chrome.bookmarks.onMoved.addListener((id, moveInfo) => refreshBookmarkTree());
+        console.log('Bookmark tree initialized:', this.bookmarkTree);
+        chrome.bookmarks.onCreated.addListener((_id, _bookmark) => refreshBookmarkTree());
+        chrome.bookmarks.onRemoved.addListener((_id) => refreshBookmarkTree());
+        chrome.bookmarks.onChanged.addListener((_id, _changeInfo) => refreshBookmarkTree());
+        chrome.bookmarks.onMoved.addListener((_id, _moveInfo) => refreshBookmarkTree());
     }
 
     static getTree() {
