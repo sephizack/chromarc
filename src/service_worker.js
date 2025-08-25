@@ -19,6 +19,10 @@ chrome.commands.onCommand.addListener((command, tab) => {
     }
 });
 
+/**
+ * Toggles the side panel open/close state for the specified tab.
+ * @param {chrome.tabs.Tab} tab - The tab for which to toggle the side panel.
+ */
 async function actionToggleSidePanel(tab) {
     if (chrome.sidePanel) {
         chrome.sidePanel.setOptions({
@@ -37,7 +41,11 @@ async function actionToggleSidePanel(tab) {
     }
 }
 
-async function actionToggleLastActiveTabs(tab) {
+/**
+ * Switches focus to the most recently accessed tab (excluding the currently active tab).
+ * @param {chrome.tabs.Tab} _tab - The currently active tab.
+ */
+async function actionToggleLastActiveTabs(_tab) {
     console.log('Toggling last active tabs');
     chrome.tabs.query({}, tabs => {
         const lastActiveTab = tabs.reduce((mostRecent, tab) => {
@@ -65,6 +73,10 @@ async function actionToggleLastActiveTabs(tab) {
     });
 }
 
+/**
+ * Closes tabs that have exceeded the configured expiration time.
+ * Excludes pinned tabs and active tabs from closure.
+ */
 async function closeOldTabs() {
     let settings = await Settings.loadFromStorage();
     console.trace(`closeOldTabs (expirationTime: ${settings.tabExpirationMs / (60 * 1000)} min)`);

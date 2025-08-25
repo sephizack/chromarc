@@ -6,12 +6,22 @@ import { Tab } from './tab.js';
 import { TabPlaceholder } from './tab_placeholder.js';
 
 export class TabList extends NanoReact.Component {
+    /**
+     * Creates a new TabList instance.
+     * @param {object} props - Component props.
+     * @param {Map} props.tabs - Map of tab components.
+     * @param {Function} props.bookmarkTab - Function to bookmark a tab.
+     */
     constructor({ tabs, bookmarkTab }) {
         super();
         this.tabs = tabs;
         this.bookmarkTab = bookmarkTab;
     }
 
+    /**
+     * Renders the tab list container.
+     * @returns {NanoReact.Element} The tab list element.
+     */
     render() {
         // New Tab Button
         this.newTab = h(NewTab, { tabs: this.tabs, onTabCreated: this.onTabCreated.bind(this) });
@@ -24,6 +34,10 @@ export class TabList extends NanoReact.Component {
         ]);
     }
 
+    /**
+     * Handles tab creation events.
+     * @param {chrome.tabs.Tab} tab - The newly created tab.
+     */
     async onTabCreated(tab) {
         console.trace(`onTabCreated`, tab);
         // If this is a new tab, we don't render it and set the New Tab button as active instead
@@ -47,6 +61,10 @@ export class TabList extends NanoReact.Component {
         this.tabs.set(tab.id, tabComponent);
     }
 
+    /**
+     * Handles drop events for drag and drop operations.
+     * @param {DragEvent} e - The drop event.
+     */
     async onDrop(e) {
         e.preventDefault();
         const draggedObject = TabPlaceholder.getDraggedObject();
@@ -70,11 +88,21 @@ export class TabList extends NanoReact.Component {
         }
     }
 
+    /**
+     * Handles tab update events.
+     * @param {number} tabId - The ID of the updated tab.
+     * @param {chrome.tabs.TabChangeInfo} changeInfo - The change information.
+     * @param {chrome.tabs.Tab} tab - The updated tab.
+     */
     onTabUpdated(tabId, changeInfo, tab) {
         console.trace(`onTabUpdated`, tabId, changeInfo, tab);
         this.tabs.get(tabId).onTabUpdated(changeInfo, tab);
     }
 
+    /**
+     * Handles tab removal events.
+     * @param {number} tabId - The ID of the removed tab.
+     */
     onTabRemoved(tabId) {
         console.trace(`onTabRemoved`, tabId);
         this.tabs.get(tabId)?.onTabRemoved();

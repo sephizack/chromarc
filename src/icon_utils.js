@@ -6,6 +6,11 @@ export const DeleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="100%"
 
 export const CloseIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="100%" viewBox="0 -960 960 960" width="100%" fill="#e3e3e3"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>`;
 
+/**
+ * Gets the favicon URL for a given page URL using Chrome's internal favicon cache.
+ * @param {string} pageUrl - The URL of the page to get the favicon for.
+ * @returns {string} The URL to the cached favicon.
+ */
 export function getFaviconFromCache(pageUrl) {
     const url = new URL(chrome.runtime.getURL('/_favicon/'));
     url.searchParams.set('pageUrl', pageUrl); // this encodes the URL as well

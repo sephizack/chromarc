@@ -8,10 +8,25 @@ import { ContextMenu } from '../context_menu.js';
 
 
 export class BookmarkFolder extends BookmarkContainer {
+    /**
+     * Creates a new BookmarkFolder instance.
+     * @param {object} props - Component props.
+     * @param {chrome.bookmarks.BookmarkTreeNode} props.rootFolder - The folder data.
+     * @param {Map} props.bookmarks - Map of bookmark components.
+     * @param {Map} props.folders - Map of folder components.
+     * @param {Map} props.urlIndex - URL to component mapping.
+     * @param {Set} props.openedFolders - Set of opened folder IDs.
+     * @param {Function} props.onTabCreated - Callback for tab creation.
+     * @param {Function} props.bookmarkTab - Function to bookmark a tab.
+     */
     constructor({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab }) {
         super({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab, folderClass: BookmarkFolder });
     }
 
+    /**
+     * Renders the bookmark folder element.
+     * @returns {NanoReact.Element} The folder element.
+     */
     render() {
         return h('li',
             {
@@ -51,11 +66,19 @@ export class BookmarkFolder extends BookmarkContainer {
         );
     }
 
+    /**
+     * Handles drag enter events for the folder.
+     * @param {DragEvent} e - The drag event.
+     */
     onDragEnter(e) {
         e.preventDefault();
         this.ref.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
     }
 
+    /**
+     * Handles drag leave events for the folder.
+     * @param {DragEvent} e - The drag event.
+     */
     onDragLeave(e) {
         e.preventDefault();
         // Check if mouse is still within the folder area
@@ -67,12 +90,19 @@ export class BookmarkFolder extends BookmarkContainer {
         }
     }
 
+    /**
+     * Handles drag over events for the folder header.
+     * @param {DragEvent} e - The drag event.
+     */
     onDragOverHeader(e) {
         e.preventDefault();
         TabPlaceholder.insertAfter(this.childContainer.ref.lastChild);
         TabPlaceholder.setOnDrop(this.onDrop.bind(this));
     }
 
+    /**
+     * Called after the component is mounted. Loads folder contents.
+     */
     async componentDidMount() {
         if (this.rootFolder.children) {
             this.rootFolder.children.forEach(child => {
@@ -81,10 +111,17 @@ export class BookmarkFolder extends BookmarkContainer {
         }
     }
 
+    /**
+     * Checks if the folder is currently opened.
+     * @returns {boolean} True if the folder is opened.
+     */
     isOpened() {
         return this.openedFolders.has(this.rootFolder.id);
     }
 
+    /**
+     * Toggles the opened/closed state of the folder.
+     */
     toggleOpened() {
         const opening = !this.isOpened();
         console.debug(`Toggling folder ${this.rootFolder.title} (${this.rootFolder.id}) to ${opening ? 'open' : 'closed'}`);

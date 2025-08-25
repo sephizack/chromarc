@@ -7,6 +7,13 @@ import { ContextMenu } from '../context_menu.js';
 
 
 export class Bookmark extends Tab {
+    /**
+     * Creates a new Bookmark instance.
+     * @param {object} props - Component props.
+     * @param {chrome.bookmarks.BookmarkTreeNode} props.bookmark - The bookmark data.
+     * @param {Function} props.onDrop - Drop event handler.
+     * @param {Function} props.onTabCreated - Callback for tab creation.
+     */
     constructor({ bookmark, onDrop, onTabCreated }) {
         super({ onDrop: onDrop });
         this.bookmark = bookmark;
@@ -14,6 +21,10 @@ export class Bookmark extends Tab {
         this.onTabCreated = onTabCreated;
     }
 
+    /**
+     * Renders the bookmark element.
+     * @returns {NanoReact.Element} The bookmark element.
+     */
     async render() {
         return h(
             'li',
@@ -120,10 +131,18 @@ export class Bookmark extends Tab {
         );
     }
 
+    /**
+     * Called after the component is mounted. Hides the close button initially.
+     */
     async componentDidMount() {
         this.closeButton.setHidden(true);
     }
 
+    /**
+     * Handles tab update events and checks for URL differences.
+     * @param {chrome.tabs.TabChangeInfo} changeInfo - The change information.
+     * @param {chrome.tabs.Tab} _ - The updated tab (unused).
+     */
     onTabUpdated(changeInfo, _) {
         super.onTabUpdated(changeInfo, _);
         // Stylish indicator if tab URL differs from bookmark URL
@@ -131,6 +150,10 @@ export class Bookmark extends Tab {
         this.setIsUrlDiff(tabUrl !== this.bookmark.url);
     }
 
+    /**
+     * Sets the URL difference indicator visibility.
+     * @param {boolean} isUrlDiff - Whether the tab URL differs from bookmark URL.
+     */
     setIsUrlDiff(isUrlDiff) {
         this.isUrlDiff = isUrlDiff;
         if (isUrlDiff) {
@@ -141,6 +164,9 @@ export class Bookmark extends Tab {
         }
     }
 
+    /**
+     * Handles tab removal events.
+     */
     onTabRemoved() {
         this.tab = null;
         this.closeButton.setIcon(DeleteIcon);
@@ -149,10 +175,18 @@ export class Bookmark extends Tab {
         this.onTabUpdated(this.bookmark);
     }
 
+    /**
+     * Handles bookmark change events.
+     * @param {string} id - The bookmark ID.
+     * @param {chrome.bookmarks.BookmarkChangeInfo} changeInfo - The change information.
+     */
     onBookmarkChanged(id, changeInfo) {
         this.onTabUpdated(changeInfo);
     }
 
+    /**
+     * Handles bookmark removal events.
+     */
     onBookmarkRemoved() {
         this.ref.remove();
         if (this.tab) {
@@ -160,6 +194,10 @@ export class Bookmark extends Tab {
         }
     }
 
+    /**
+     * Associates a tab with this bookmark.
+     * @param {chrome.tabs.Tab} tab - The tab to associate.
+     */
     setTab(tab) {
         this.tab = tab;
         this.closeButton.setIcon(CloseIcon);

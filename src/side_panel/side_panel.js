@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementsByTagName("body")[0].appendChild(await NanoReact.render(h(SidePanel)));
 });
 
+/**
+ * Creates a clear tabs button component.
+ * @returns {NanoReact.Element} The clear tabs button element.
+ */
 function ClearTabsButton() {
     return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
 }
@@ -50,6 +54,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 export class SidePanel extends NanoReact.Component {
+    /**
+     * Creates a new SidePanel instance.
+     */
     constructor() {
         super();
         this.tabs = new Map();
@@ -57,6 +64,10 @@ export class SidePanel extends NanoReact.Component {
         this.menuItems = {};
     }
 
+    /**
+     * Renders the side panel with bookmarks and tabs.
+     * @returns {NanoReact.Element} The rendered side panel element.
+     */
     async render() {
         // Get active tab
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -107,6 +118,9 @@ export class SidePanel extends NanoReact.Component {
         ]);
     }
 
+    /**
+     * Called after the component has been mounted. Loads existing tabs.
+     */
     async componentDidMount() {
         // Load existing tabs
         const tabs = await chrome.tabs.query({});
@@ -116,6 +130,10 @@ export class SidePanel extends NanoReact.Component {
         }
     }
 
+    /**
+     * Sets the active tab and updates the UI accordingly.
+     * @param {number} tabId - The ID of the tab to set as active.
+     */
     setActiveTab(tabId) {
         console.trace(`setActiveTab`, tabId);
         if (!this.tabs.has(tabId)) {
@@ -135,6 +153,10 @@ export class SidePanel extends NanoReact.Component {
         this.tabs.get(tabId).setActive(true);
     }
 
+    /**
+     * Handles tab creation events from Chrome.
+     * @param {chrome.tabs.Tab} tab - The newly created tab.
+     */
     async onTabCreated(tab) {
         console.trace(`onTabCreated`, tab);
         if (this.bookmarkList.isTabBookmarked(tab)) {
@@ -149,6 +171,11 @@ export class SidePanel extends NanoReact.Component {
         }
     }
 
+    /**
+     * Bookmarks a tab and moves it to the bookmarks section.
+     * @param {chrome.tabs.Tab} tab - The tab to bookmark.
+     * @param {string} parentId - The ID of the bookmark folder to add the bookmark to.
+     */
     bookmarkTab(tab, parentId) {
         chrome.bookmarks.create({ title: tab.title, url: tab.url, parentId: parentId }, (bookmark) => {
             if (chrome.runtime.lastError) {
@@ -167,14 +194,28 @@ export class SidePanel extends NanoReact.Component {
         });
     }
 
+    /**
+     * Handles tab removal events from Chrome.
+     * @param {number} tabId - The ID of the removed tab.
+     */
     onTabRemoved(tabId) {
         this.tabList.onTabRemoved(tabId);
     }
 
+    /**
+     * Handles tab update events from Chrome.
+     * @param {number} tabId - The ID of the updated tab.
+     * @param {chrome.tabs.TabChangeInfo} changeInfo - Information about what changed.
+     * @param {chrome.tabs.Tab} tab - The updated tab object.
+     */
     onTabUpdated(tabId, changeInfo, tab) {
         this.tabList.onTabUpdated(tabId, changeInfo, tab);
     }
 
+    /**
+     * Handles tab activation events from Chrome.
+     * @param {chrome.tabs.TabActiveInfo} activeInfo - Information about the activated tab.
+     */
     onTabActivated(activeInfo) {
         this.setActiveTab(activeInfo.tabId);
     }

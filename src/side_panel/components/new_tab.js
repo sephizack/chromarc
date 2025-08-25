@@ -4,20 +4,40 @@
 import { NanoReact, h } from '../../nanoreact.js';
 
 export class NewTab extends NanoReact.Component {
+    /**
+     * Creates a new NewTab instance.
+     * @param {object} props - Component props.
+     * @param {Map} props.tabs - Map of tab components.
+     * @param {Function} props.onTabCreated - Callback for tab creation.
+     */
     constructor({ tabs, onTabCreated }) {
         super();
         this.tabs = tabs;
         this.onTabCreated = onTabCreated;
     }
 
+    /**
+     * Checks if a tab is a new tab.
+     * @param {chrome.tabs.Tab} tab - The tab to check.
+     * @returns {boolean} True if the tab is a new tab.
+     */
     static isNewTab(tab) {
         return tab.url === 'chrome://newtab/' || tab.pendingUrl === 'chrome://newtab/';
     }
 
+    /**
+     * Checks if a tab is a new tab that is currently loading.
+     * @param {chrome.tabs.Tab} tab - The tab to check.
+     * @returns {boolean} True if the tab is a loading new tab.
+     */
     static isNewTabLoading(tab) {
         return tab.status === 'loading' && tab.pendingUrl && tab.pendingUrl != 'chrome://newtab/';
     }
 
+    /**
+     * Renders the new tab button element.
+     * @returns {NanoReact.Element} The new tab button element.
+     */
     render() {
         return h(
             'li',
@@ -51,6 +71,10 @@ export class NewTab extends NanoReact.Component {
         );
     }
 
+    /**
+     * Cleans up pending new tabs and sets this tab as active.
+     * @param {chrome.tabs.Tab} curNewTab - The current new tab.
+     */
     async cleanPendingAndSet(curNewTab) {
         this.setActive(true);
         this.tabs.set(curNewTab.id, this);
@@ -73,6 +97,11 @@ export class NewTab extends NanoReact.Component {
         });
     }
 
+    /**
+     * Handles tab update events.
+     * @param {chrome.tabs.TabChangeInfo} changeInfo - The change information.
+     * @param {chrome.tabs.Tab} tab - The updated tab.
+     */
     onTabUpdated(changeInfo, tab) {
         if (NewTab.isNewTab(tab) && tab.active) {
             this.setActive(true);
@@ -82,10 +111,17 @@ export class NewTab extends NanoReact.Component {
         }
     }
 
+    /**
+     * Handles tab removal events.
+     */
     onTabRemoved() {
         this.setActive(false);
     }
 
+    /**
+     * Sets the active state of the new tab button.
+     * @param {boolean} isActive - Whether the button should be active.
+     */
     setActive(isActive) {
         if (isActive) {
             this.ref.classList.add('active');
@@ -94,6 +130,11 @@ export class NewTab extends NanoReact.Component {
         }
     }
 
+    /**
+     * Closes a tab with retry logic for edge cases.
+     * @param {number} id - The tab ID to close.
+     * @private
+     */
     _closeTab(id) {
         console.trace(`_closeTab(${id})`);
         chrome.tabs.remove(id, () => {

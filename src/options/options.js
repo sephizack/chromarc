@@ -3,6 +3,10 @@
 import { Settings } from '../settings.js';
 import { ArcSidebarImporter } from './ArcSidebarImporter.js';
 
+/**
+ * Renders the settings interface for tab expiration configuration.
+ * @param {Settings} settings - The settings object to render.
+ */
 function renderSettings(settings) {
 
     // Use existing DOM elements from HTML
@@ -41,6 +45,9 @@ function renderSettings(settings) {
     unitSelect.value = selectedUnit;
 
     // Enable/disable inputs based on checkbox
+    /**
+     * Updates the enabled/disabled state of input elements based on checkbox.
+     */
     function updateInputsState() {
         const enabled = enableCheckbox.checked;
         valueInput.disabled = !enabled;
@@ -49,6 +56,9 @@ function renderSettings(settings) {
     updateInputsState();
 
     // Save logic
+    /**
+     * Saves the tab expiration settings.
+     */
     async function saveTabExpiration() {
         if (!enableCheckbox.checked) {
             settings.tabExpirationMs = 0;
@@ -104,6 +114,10 @@ function renderSettings(settings) {
 }
 
 // Save settings to storage
+/**
+ * Saves settings to storage and displays a success message.
+ * @param {Settings} settings - The settings object to save.
+ */
 async function saveSettings(settings) {
     try {
         await settings.saveToStorage();

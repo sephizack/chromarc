@@ -3,6 +3,12 @@
 export const NanoReact = {}
 
 NanoReact.Element = class {
+    /**
+     * Creates a new NanoReact Element.
+     * @param {string} type - The HTML tag name for the element.
+     * @param {object} [props] - The properties to set on the element.
+     * @param {Array} [children] - The children of the element.
+     */
     constructor(type, props = {}, children = []) {
         this.type = type;
         this.props = props;
@@ -11,7 +17,7 @@ NanoReact.Element = class {
     }
     /**
      * Renders the element and its children.
-     * @returns {HTMLElement}
+     * @returns {HTMLElement} The rendered DOM element.
      */
     async render() {
         this.ref = document.createElement(this.type);
@@ -66,6 +72,9 @@ NanoReact.Element = class {
 }
 
 NanoReact.Component = class extends NanoReact.Element {
+    /**
+     * Creates a new NanoReact Component.
+     */
     constructor() {
         super("Component");
         this.type = this.constructor.name;
@@ -73,17 +82,21 @@ NanoReact.Component = class extends NanoReact.Element {
     }
     /**
      * Renders the component.
-     * @returns {NanoReact.Element}
+     * @returns {NanoReact.Element} The rendered element.
      */
     async render() {
         throw new Error('Render method must be implemented in subclass');
     }
+    /**
+     * Called after the component has been mounted to the DOM.
+     */
     async componentDidMount() {}
 };
 
 /**
- * Renders an Element or a Component
+ * Renders an Element or a Component and returns the resulting DOM element.
  * @param {NanoReact.Element | NanoReact.Component} element - The element to render.
+ * @returns {HTMLElement} The rendered DOM element.
  */
 NanoReact.render = async function (element) {
     if (element instanceof NanoReact.Component) {
@@ -112,9 +125,9 @@ NanoReact.render = async function (element) {
 /**
  * Creates a new Element.
  * @param {string|function|NanoReact.Component} type - The type of the element (tag name or component).
- * @param {object} [props={}] - The properties to set on the element.
- * @param {Array} [children=[]] - The children of the element.
- * @returns {NanoReact.Element|NanoReact.Component}
+ * @param {object} [props] - The properties to set on the element.
+ * @param {Array} [children] - The children of the element.
+ * @returns {NanoReact.Element|NanoReact.Component} The created element or component.
  */
 NanoReact.createElement = function (type, props = {}, ...children) {
     // Normalize children to an array

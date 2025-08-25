@@ -1,7 +1,7 @@
 
 'use strict';
 
-import { DeleteIcon, CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
+import { CloseIcon, getFaviconFromCache } from '../../icon_utils.js';
 import { NanoReact, h } from '../../nanoreact.js';
 import { ContextMenu } from '../context_menu.js';
 import { TabPlaceholder } from './tab_placeholder.js';
@@ -9,17 +9,30 @@ import { BookmarkUtils } from '../bookmark_utils.js';
 
 
 export class TabFavicon extends NanoReact.Component {
+    /**
+     * Creates a new TabFavicon instance.
+     * @param {object} props - Component props.
+     * @param {chrome.tabs.Tab} props.tab - The tab to display favicon for.
+     */
     constructor({ tab }) {
         super();
         this.tab = tab;
     }
 
+    /**
+     * Gets the appropriate favicon URL for the current tab state.
+     * @returns {string} The favicon URL.
+     */
     getFaviconUrl() {
         return this.tab?.status === 'loading'
             ? '../assets/spinner.svg'
             : getFaviconFromCache(this.tab?.url) || this.tab?.favIconUrl;
     }
 
+    /**
+     * Updates the favicon when tab state changes.
+     * @param {chrome.tabs.TabChangeInfo} changeInfo - Information about what changed in the tab.
+     */
     onTabUpdated(changeInfo) {
         // Show spinner if loading, otherwise show favicon
         if (changeInfo.status !== undefined) {
@@ -41,12 +54,22 @@ export class TabFavicon extends NanoReact.Component {
 }
 
 export class CloseButton extends NanoReact.Component {
+    /**
+     * Creates a new CloseButton instance.
+     * @param {object} props - Component props.
+     * @param {Function} props.onClick - Click handler function.
+     * @param {string} [props.icon] - Icon to display (defaults to CloseIcon).
+     */
     constructor({ onClick, icon }) {
         super();
         this.onClick = onClick;
         this.icon = icon;
     }
 
+    /**
+     * Sets the icon displayed in the button.
+     * @param {string} icon - The HTML string for the icon.
+     */
     setIcon(icon) {
         this.icon = icon;
         if (this.innerDiv) {
@@ -54,6 +77,10 @@ export class CloseButton extends NanoReact.Component {
         }
     }
 
+    /**
+     * Sets the text displayed in the button.
+     * @param {string} text - The text to display.
+     */
     setText(text) {
         this.icon = text;
         if (this.innerDiv) {
@@ -61,6 +88,10 @@ export class CloseButton extends NanoReact.Component {
         }
     }
 
+    /**
+     * Shows or hides the button.
+     * @param {boolean} hidden - Whether to hide the button.
+     */
     setHidden(hidden) {
         if (this.innerDiv) {
             this.innerDiv.ref.style.display = hidden ? 'none' : 'block';
@@ -82,7 +113,17 @@ export class CloseButton extends NanoReact.Component {
 }
 
 export class Tab extends NanoReact.Component {
-    constructor({ tab, onDragStart, onDragOver, onDrop, onDragEnd, bookmarkTab }) {
+    /**
+     * Creates a new Tab instance.
+     * @param {object} props - Component props.
+     * @param {chrome.tabs.Tab} props.tab - The tab data.
+     * @param {Function} props._onDragStart - Drag start handler (unused).
+     * @param {Function} props._onDragOver - Drag over handler (unused).
+     * @param {Function} props.onDrop - Drop handler.
+     * @param {Function} props._onDragEnd - Drag end handler (unused).
+     * @param {Function} props.bookmarkTab - Function to bookmark the tab.
+     */
+    constructor({ tab, _onDragStart, _onDragOver, onDrop, _onDragEnd, bookmarkTab }) {
         super();
         // --- Props
         this.tab = tab;

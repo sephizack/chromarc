@@ -10,6 +10,18 @@ import { TabPlaceholder } from './tab_placeholder.js';
  * Handles common logic for managing bookmarks and folders.
  */
 export class BookmarkContainer extends NanoReact.Component {
+    /**
+     * Creates a new BookmarkContainer.
+     * @param {object} config - The configuration object.
+     * @param {object} config.rootFolder - The root folder for this container.
+     * @param {Map} config.bookmarks - Map of bookmark IDs to bookmark components.
+     * @param {Map} config.folders - Map of folder IDs to folder components.
+     * @param {Map} config.urlIndex - Map of URLs to bookmark components.
+     * @param {Set} config.openedFolders - Set of opened folder IDs.
+     * @param {Function} config.onTabCreated - Callback for when a tab is created.
+     * @param {Function} config.bookmarkTab - Function to bookmark a tab.
+     * @param {Class} config.folderClass - The class to use for folder components.
+     */
     constructor({ rootFolder, bookmarks, folders, urlIndex, openedFolders, onTabCreated, bookmarkTab, folderClass }) {
         super();
         this.rootFolder = rootFolder;
@@ -61,6 +73,10 @@ export class BookmarkContainer extends NanoReact.Component {
         }
     }
 
+    /**
+     * Handles drop events for bookmarks and tabs.
+     * @param {DragEvent} e - The drop event.
+     */
     onDrop(e) {
         e.preventDefault();
         const draggedObject = TabPlaceholder.getDraggedObject();

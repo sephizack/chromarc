@@ -3,6 +3,9 @@ export class BookmarkUtils {
 
     static bookmarkTree = null;
 
+    /**
+     * Initializes the BookmarkUtils by loading the bookmark tree and setting up listeners.
+     */
     static async init() {
         const refreshBookmarkTree = async () => {
             this.bookmarkTree = await chrome.bookmarks.getTree();
@@ -15,6 +18,11 @@ export class BookmarkUtils {
         chrome.bookmarks.onMoved.addListener((_id, _moveInfo) => refreshBookmarkTree());
     }
 
+    /**
+     * Gets the cached bookmark tree.
+     * @returns {chrome.bookmarks.BookmarkTreeNode[]} The bookmark tree.
+     * @throws {Error} If BookmarkUtils is not initialized.
+     */
     static getTree() {
         if (!this.bookmarkTree) {
             throw new Error('BookmarkUtils is not initialized');
@@ -22,6 +30,10 @@ export class BookmarkUtils {
         return this.bookmarkTree;
     }
 
+    /**
+     * Gets the Bookmarks Bar node from the bookmark tree.
+     * @returns {chrome.bookmarks.BookmarkTreeNode|undefined} The Bookmarks Bar node, or undefined if not found.
+     */
     static getBar() {
         let bookmarkTreeNodes = this.getTree();
         if (!bookmarkTreeNodes || !bookmarkTreeNodes[0] || !bookmarkTreeNodes[0].children) {

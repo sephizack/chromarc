@@ -18,6 +18,7 @@ The codebase follows best practices for Chrome extension development, focusing o
 - **Handle errors gracefully** and provide meaningful error messages.
 - **Follow the existing code style** (indentation, spacing, semicolons, etc.).
 - **Avoid code duplication**; extract common logic into functions or modules.
+- **Use JSDoc comments** to document all functions and complex logic.
 
 ## Chrome Extension Specific Guidelines
 - **Follow Chrome Extension Manifest V3 guidelines.**
