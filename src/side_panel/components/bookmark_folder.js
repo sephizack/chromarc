@@ -46,10 +46,15 @@ export class BookmarkFolder extends BookmarkContainer {
                             this.toggleOpened();
                         },
                         onContextMenu: (_e) => {
-                            ContextMenu.addItem('Delete folder', () => {
+                            ContextMenu.addItem('Delete folder', async () => {
                                 // Make a popup to confirm folder removal using chrome.notifications
                                 console.debug(`Requesting confirmation to remove folder "${this.rootFolder.title}"`);
-                                confirm(`Are you sure you want to remove the folder "${this.rootFolder.title}"?\nThis will delete all ${this.rootFolder.children.length} bookmarks inside.`)
+                                if (confirm(`Are you sure you want to remove the folder "${this.rootFolder.title}"?\nThis will delete all ${this.rootFolder.children.length} bookmarks inside.`)) {
+                                    await chrome.bookmarks.removeTree(this.rootFolder.id);
+                                    if (chrome.runtime.lastError) {
+                                        console.error(`Error removing folder "${this.rootFolder.title}": ${chrome.runtime.lastError.message}`);
+                                    }
+                                }
                             });
                         },
                         onDragOver: (e) => this.onDragOverHeader(e),
