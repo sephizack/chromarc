@@ -11,31 +11,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementsByTagName("body")[0].appendChild(await NanoReact.render(h(SidePanel)));
 });
 
-/**
- * Creates a clear tabs button component.
- * @returns {NanoReact.Element} The clear tabs button element.
- */
-function ClearTabsButton() {
-    return h('span', { id: 'clear-tabs', title: 'Close all open tabs' }, ['Clear']);
+export class ClearTabsButton extends NanoReact.Component {
+    constructor({ onClick }) {
+        super();
+        this.onClick = onClick;
+    }
+
+    async render() {
+        return h('span',
+            {
+                id: 'clear-tabs',
+                title: 'Close all open tabs',
+                onClick: this.onClick
+            },
+            ['Clear']);
+    }
 }
-
-
-// export class ClearTabsButton extends NanoReact.Component {
-//     constructor({ onClick }) {
-//         super();
-//         this.onClick = onClick;
-//     }
-
-//     async render() {
-//         return h('span',
-//             {
-//                 id: 'clear-tabs',
-//                 title: 'Close all open tabs',
-//                 onClick: this.onClick
-//             },
-//             ['Clear']);
-//     }
-// }
 
 let isAlreadyClosedOnce = false;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -62,6 +53,9 @@ export class SidePanel extends NanoReact.Component {
         this.tabs = new Map();
         this.activeTabId = null;
         this.menuItems = {};
+        this.clearTabsButton = null;
+        this.bookmarkList = null;
+        this.tabList = null;
     }
 
     /**
@@ -100,14 +94,15 @@ export class SidePanel extends NanoReact.Component {
                 }),
             h('div', { class: 'section-divider-container' }, [
                 h('hr', { class: 'section-divider' }, []),
-                h(ClearTabsButton),
-                // this.clearTabsButton = h(ClearTabsButton, {
-                //     onClick: async () => {
-                //         let ids = Array.from(this.tabs.keys()).filter(tabId => tabId !== 'new-tab');
-                //         console.log('Closing tabs:', ids);
-                //         await chrome.tabs.remove(ids);
-                //     }
-                // }),
+                this.clearTabsButton = h(ClearTabsButton, {
+                    onClick: async () => {
+                        console.debug('Clear all button clicked');
+                        let ids = Array.from(this.tabs.keys()).filter(tabId => tabId !== 'new-tab');
+                        console.debug('Closing tabs:', ids);
+                        await chrome.tabs.create({});
+                        await chrome.tabs.remove(ids);
+                    }
+                }),
             ]),
             this.tabList = h(TabList,
                 {

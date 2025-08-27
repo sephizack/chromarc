@@ -55,7 +55,10 @@ let bookmarkTree = [
     }
 ];
 
-let sidePanel;
+/**
+ * @type {SidePanel}
+ */
+let sidePanel = null;
 
 beforeEach(() => {
     document.body.innerHTML = '';
@@ -100,26 +103,33 @@ describe('SidePanel', () => {
                 expect(getTabIds()).toEqual(['new-tab', 'tab-3', 'tab-1']);
                 expect(getActiveTabId()).toEqual('tab-1');
             });
-            // FIXME
-            test.skip('Clear all', async () => {
+            test('Clear all', async () => {
                 await initializeSidePanel();
 
-                // await document.body.querySelector('#clear-tabs').dispatchEvent(new window.Event("click", { bubbles: true }));
+                chrome.tabs.remove.mockImplementation(async (tabIds) => {
+                    // check if tabIds is an array or a single number
+                    let ids = Array.isArray(tabIds) ? tabIds : [tabIds];
+                    // simulate onRemoved event for each tabId
+                    for (let id of ids) {
+                        await testutils.asyncCallListeners(chrome.tabs.onRemoved, id);
+                    }
+                });
+
+                chrome.tabs.create.mockImplementation(async (_createProperties) => {
+                    let newTab = testutils.newTab(99, "New Tab", true);
+                    newTab.url = 'chrome://newtab/';
+                    await testutils.asyncCallListeners(chrome.tabs.onCreated, newTab);
+                });
+
                 await sidePanel.clearTabsButton.onClick();
 
-                // setTimeout(() => {
-                //     expect(getTabIds()).toEqual(['new-tab']);
-                //     done();
-                // }, 100);
-
-                await new Promise((resolve) => setTimeout(resolve, 100));
-
                 expect(getTabIds()).toEqual(['new-tab']);
+                expect(getActiveTabId()).toEqual('new-tab');
             });
+
         });
 
-        // FIXME
-        describe.skip('Update tab', () => {
+        describe('Update tab', () => {
             test('Title', async () => {
                 await initializeSidePanel();
                 let tabs = null;
