@@ -9,10 +9,6 @@ export class ContextMenu {
     static init() {
         document.addEventListener('contextmenu', _ => this.build());
         chrome.contextMenus.onClicked.addListener(this.onClick.bind(this));
-        // Ok so I don't know if it's an optim or a bug of Chrome.
-        // But if the menu is created from scratch on contextmenu event, the extension icon is not displayed.
-        // So we need to always keep at least one item in the menu, and at the beginning we create a fake item.
-        this.addItem('fake', () => {});
         this.build();
     }
 
@@ -67,18 +63,31 @@ export class ContextMenu {
      * Builds and updates the Chrome context menu with all registered items.
      */
     static build() {
+        if (!this.items || Object.keys(this.items).length === 0) {
+            // Ok so I don't know if it's an optim or a bug of Chrome.
+            // But if the menu is created from scratch on contextmenu event, the extension icon is not displayed.
+            // So we need to always keep at least one item in the menu, and at the beginning we create a fake item.
+            this.addItem('fake', () => {});
+        }
         for (const id in this.items) {
             const item = this.items[id];
             if (this.pending[id]) {
+                // Conflict id with a previous item
+                // To avoid the bug where the item is not created if it already exists
+                chrome.contextMenus.create({id: "tmp", title: "tmp"}); // To avoid being empty
                 chrome.contextMenus.remove(id);
             }
             chrome.contextMenus.create({
-                id: id,
+                id: id, 
                 title: item.title,
                 parentId: item.parentId || undefined,
                 contexts: ['all'],
+                visible: id !== "fake",
                 documentUrlPatterns: [chrome.runtime.getURL('side_panel/side_panel.html')],
             });
+            if (this.pending[id]) {
+                chrome.contextMenus.remove("tmp");
+            }
         }
         // Remove old context menu items
         // We cannot do removeAll at the start because of the bug described in the init method
